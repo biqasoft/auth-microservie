@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Microservice / Users-auth-domain / DEV / JDK8" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="users-auth cluster" singleton="true">
+    <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+    <extension name="ru.yole.jitwatch.JitRunConfigurationExtension" jitwatch-enabled="true" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.biqasoft.users.StartApplication" />
+    <option name="VM_PARAMETERS" value="-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=9999 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=9999 -Djava.net.useSystemProxies=true -Dfile.encoding=UTF8" />
+    <option name="PROGRAM_PARAMETERS" value="--spring.profiles.active=development" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <module name="auth-microservice" />
+    <envs />
+    <RunnerSettings RunnerId="JProfiler">
+      <option name="WINDOW" value="false" />
+    </RunnerSettings>
+    <method />
+  </configuration>
+</component>
