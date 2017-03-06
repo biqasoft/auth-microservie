@@ -1,0 +1,32 @@
+syntax = "proto3";
+import "User.proto";
+option java_package = "com.biqasoft.users.grpc";
+
+service Users {
+    rpc GetUserById (UserGetRequest) returns (UserGetResponse) {}
+    rpc AuthenticateUser (UserAuthenticateRequest) returns (UserAuthenticateResponse) {}
+}
+
+message UserGetRequest{
+    string id = 1;
+}
+
+message UserGetResponse{
+    User user = 1;
+    bool valid = 2;
+    string error = 3;
+}
+
+message UserAuthenticateRequest{
+    string username = 1;
+    string password = 2;
+    string ip = 3;
+    string token = 4;
+}
+
+message UserAuthenticateResponse{
+    User userAccount = 1;
+    bool authenticated = 2;
+    repeated string auths = 3;
+    string error = 4;
+}

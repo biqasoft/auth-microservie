@@ -1,0 +1,21 @@
+syntax = "proto3";
+option java_package = "com.biqasoft.users.grpc";
+
+message User {
+    string id = 1;
+    string username = 2;
+    string email = 3;
+    string telephone = 4;
+    string firstname = 5;
+    string lastname = 6;
+    string patronymic = 7;
+    string name = 8;
+    string avatarUrl = 9;
+    string position = 10;
+    string status = 11;
+    bool enabled = 12;
+//    repeated string roles = 13;
+//    repeated string effectiveRoles = 14;
+    int64 lastOnline = 15;
+    string language = 16;
+}

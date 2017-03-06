@@ -46,4 +46,35 @@ public class TransformUserAccountEntity {
         return account;
     }
 
+    public static com.biqasoft.users.useraccount.UserAccount transform (UserAccount internalUser){
+        com.biqasoft.users.useraccount.UserAccount account = new com.biqasoft.users.useraccount.UserAccount();
+        account.setId(internalUser.getId());
+
+        account.setFirstname(internalUser.getFirstname());
+        account.setLastname(internalUser.getLastname());
+        account.setPatronymic(internalUser.getPatronymic());
+        account.setEmail(internalUser.getEmail());
+        account.setTelephone(internalUser.getTelephone());
+
+        account.setName(internalUser.getName());
+        account.setVersion(internalUser.getVersion());
+        account.setArchived(internalUser.isArchived());
+        account.setAvatarUrl(internalUser.getAvatarUrl());
+        account.setCreatedInfo(internalUser.getCreatedInfo());
+        account.setAlias(internalUser.getAlias());
+
+        account.setEnabled(internalUser.getEnabled());
+        account.setRoles(internalUser.getRoles());
+        account.setStatus(internalUser.getStatus());
+        account.setGroups(internalUser.getGroups());
+        account.setIpPattern(internalUser.getIpPattern());
+
+        account.setLanguage(internalUser.getLanguage());
+        account.setLastOnline(internalUser.getLastOnline());
+        account.setPersonalSettings(internalUser.getPersonalSettings());
+        account.setUsername(internalUser.getUsername());
+
+        return account;
+    }
+
 }
