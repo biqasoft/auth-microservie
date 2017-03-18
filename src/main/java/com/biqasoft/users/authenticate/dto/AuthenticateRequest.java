@@ -18,12 +18,6 @@ public class AuthenticateRequest implements Serializable {
     private String ip;
     private String token;
 
-    public static AuthenticateRequest fromUserNameWithPassword(UserNameWithPassword userNameWithPassword){
-        AuthenticateRequest authenticateRequest = new AuthenticateRequest();
-        authenticateRequest.setPassword(userNameWithPassword.password);
-        authenticateRequest.setUsername(userNameWithPassword.username);
-        return authenticateRequest;
-    }
 
     public String getIp() {
         return ip;

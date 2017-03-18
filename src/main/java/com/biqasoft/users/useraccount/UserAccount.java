@@ -92,6 +92,39 @@ public class UserAccount extends GlobalStoredBaseClass {
     @ApiModelProperty("List of roles including roles from group and personal group ")
     private List<String> effectiveRoles = new ArrayList<>();
 
+    @ApiModelProperty("List of domains in which user is invited")
+    private List<String> domains = new ArrayList<>();
+
+    private String twoStepCode;
+    private boolean twoStepActivated;
+
+    public boolean isTwoStepActivated() {
+        return twoStepActivated;
+    }
+
+    public void setTwoStepActivated(boolean twoStepActivated) {
+        this.twoStepActivated = twoStepActivated;
+    }
+
+    public String getTwoStepCode() {
+        return twoStepCode;
+    }
+
+    public void setTwoStepCode(String twoStepCode) {
+        this.twoStepCode = twoStepCode;
+    }
+
+    public void setEffectiveRoles(List<String> effectiveRoles) {
+        this.effectiveRoles = effectiveRoles;
+    }
+
+    public List<String> getDomains() {
+        return domains;
+    }
+
+    public void setDomains(List<String> domains) {
+        this.domains = domains;
+    }
 
     public String getLanguage() {
         return language;

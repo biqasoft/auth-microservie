@@ -39,18 +39,32 @@ public class DomainUserController {
     private final UserAccountRepository userAccountRepository;
     private final CurrentUser currentUser;
     private final EmailPrepareAndSendService emailPrepareAndSendService;
+    private final UserSecondFactorService userSecondFactorService;
 
     @Autowired
-    public DomainUserController(UserAccountRepository userAccountRepository, CurrentUser currentUser, EmailPrepareAndSendService emailPrepareAndSendService) {
+    public DomainUserController(UserAccountRepository userAccountRepository, CurrentUser currentUser, EmailPrepareAndSendService emailPrepareAndSendService, UserSecondFactorService userSecondFactorService) {
         this.userAccountRepository = userAccountRepository;
         this.currentUser = currentUser;
         this.emailPrepareAndSendService = emailPrepareAndSendService;
+        this.userSecondFactorService = userSecondFactorService;
     }
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "", method = RequestMethod.GET)
     public List<com.biqasoft.entity.core.useraccount.UserAccount> findAllInDomainsUnsafe() {
         return TransformUserAccountEntity.transform(userAccountRepository.findAllUsersInDomain());
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "2step", method = RequestMethod.POST)
+    public UserSecondFactorService.SecondFactorResponse twoStepAuth() {
+        return userSecondFactorService.processRequest();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "2step/modify", method = RequestMethod.POST)
+    public void twoStepAuth(@RequestBody TwoStepModifyRequest twoStepModifyRequest) {
+        userSecondFactorService.modifyUserTwoStep(twoStepModifyRequest.isEnabled(), twoStepModifyRequest.getCode());
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -105,6 +119,28 @@ public class DomainUserController {
         }
 
         userAccountRepository.deleteUserById(id);
+    }
+
+
+}
+class TwoStepModifyRequest {
+    private boolean enabled;
+    private String code;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
 

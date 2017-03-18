@@ -7,9 +7,11 @@ package com.biqasoft.users.authenticate;
 import com.biqasoft.common.exceptions.InvalidRequestException;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.tomcat.util.codec.binary.Base64;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -19,6 +21,8 @@ import java.util.Objects;
  */
 public class AuthHelper {
 
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * see {@link org.springframework.security.web.authentication.www.BasicAuthenticationFilter#extractAndDecodeHeader(String, HttpServletRequest)}
      *
@@ -27,36 +31,45 @@ public class AuthHelper {
      */
     public static UserNameWithPassword processTokenHeaderToUserNameAndPassword(String token) {
         String decodedToken;
-        try {
-            if (token.startsWith("Basic ")){
+        if (token.startsWith("Basic ")) {
+            try {
                 String[] strings = token.split("Basic ", 2);
-                if (strings.length != 2){
+                if (strings.length != 2) {
                     throw new InvalidRequestException("Invalid basic authentication token");
                 }
 
-                if (!Objects.equals(strings[0], "")){
+                if (!Objects.equals(strings[0], "")) {
                     throw new InvalidRequestException("Invalid basic authentication token");
                 }
 
                 token = strings[1];
+
+                decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8"))); // spring security bug in decode from base64 -> use tomcat. see tests
+                int delim = decodedToken.indexOf(":");
+                if (delim == -1) {
+                    throw new InvalidRequestException("Invalid basic authentication token");
+                }
+
+                String[] loginPlusPassword = {decodedToken.substring(0, delim), decodedToken.substring(delim + 1)};
+
+                UserNameWithPassword userNameWithPassword = new UserNameWithPassword();
+                userNameWithPassword.username = loginPlusPassword[0];
+                userNameWithPassword.password = loginPlusPassword[1];
+                return userNameWithPassword;
+            } catch (Exception e) {
+                throw new BiqaAuthenticationLocalizedException("auth.exception.empty_password");
             }
-
-            decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8"))); // spring security bug in decode from base64 -> use tomcat. see tests
-            int delim = decodedToken.indexOf(":");
-            if (delim == -1) {
-                throw new InvalidRequestException("Invalid basic authentication token");
+        } else if (token.startsWith("Biqa ")) {
+            try {
+                token = token.replace("Biqa ", "");// / spring security bug in decode from base64 -> use tomcat. see tests
+                decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8")));
+                return objectMapper.readValue(decodedToken, UserNameWithPassword.class);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-            String[] loginPlusPassword = {decodedToken.substring(0, delim), decodedToken.substring(delim + 1)};
-
-            UserNameWithPassword userNameWithPassword = new UserNameWithPassword();
-            userNameWithPassword.username = loginPlusPassword[0];
-            userNameWithPassword.password = loginPlusPassword[1];
-            return userNameWithPassword;
-        } catch (Exception e) {
-            throw new BiqaAuthenticationLocalizedException("auth.exception.empty_password");
         }
 
+        throw new BiqaAuthenticationLocalizedException("auth.exception.empty_password");
     }
 
 }

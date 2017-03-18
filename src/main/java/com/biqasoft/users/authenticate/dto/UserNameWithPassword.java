@@ -12,6 +12,16 @@ package com.biqasoft.users.authenticate.dto;
 public class UserNameWithPassword {
     public String username;
     public String password;
+    public String twoStepCode;
+
+
+    public String getTwoStepCode() {
+        return twoStepCode;
+    }
+
+    public void setTwoStepCode(String twoStepCode) {
+        this.twoStepCode = twoStepCode;
+    }
 
     public String getUsername() {
         return username;

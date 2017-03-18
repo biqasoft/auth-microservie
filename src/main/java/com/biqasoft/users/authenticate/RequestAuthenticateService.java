@@ -5,7 +5,6 @@
 package com.biqasoft.users.authenticate;
 
 import com.biqasoft.entity.constants.SYSTEM_CONSTS;
-import com.biqasoft.entity.constants.SYSTEM_FIELDS_CONST;
 import com.biqasoft.entity.constants.SYSTEM_ROLES;
 import com.biqasoft.users.auth.CurrentUserContextProviderImpl;
 import com.biqasoft.users.auth.TransformUserAccountEntity;
@@ -20,6 +19,7 @@ import com.biqasoft.users.oauth2.OAuth2Repository;
 import com.biqasoft.users.oauth2.UserAccountOAuth2;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
+import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -141,12 +142,32 @@ public class RequestAuthenticateService {
             }
             auths.add(new SimpleGrantedAuthority(SYSTEM_ROLES.OAUTH_AUTHENTICATED));
 
+            // this is plain text password
         } else {
             user = userAccountRepository.findByUsernameOrOAuthToken(username);
             if (user == null) {
                 logger.info("Username {}: user not found", username);
                 authFailedLimit.processFailedAuth(authenticateRequest);
                 ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.no_user");
+            }
+
+            // plain text password with active 2 step auth require send as token
+            if (user.isTwoStepActivated()) {
+                String token = authenticateRequest.getToken();
+                if (StringUtils.isEmpty(token)){
+                    ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.two_step_require");
+                }
+
+                UserNameWithPassword userNameWithPassword = AuthHelper.processTokenHeaderToUserNameAndPassword(token);
+                if (userNameWithPassword != null && !StringUtils.isEmpty(userNameWithPassword.getTwoStepCode())) {
+
+                    if (!isTwoStepCodeValidForuser(user, userNameWithPassword.twoStepCode)){
+                        ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.two_step_require");
+                    }
+
+                } else {
+                    ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.two_step_require");
+                }
             }
 
             if (!encoder.matches(password, user.getPassword())) {
@@ -189,6 +210,17 @@ public class RequestAuthenticateService {
 //        response.setDomainSettings(domainSettingsRepository.findDomainSettingsById(user.getDomain())); // do not add domain settings because they not always need
 
         return response;
+    }
+
+    public static boolean isTwoStepCodeValidForuser(UserAccount userAccount, String providedCode){
+        String currentValidCode;
+        try {
+            currentValidCode = TimeBasedOneTimePasswordUtil.generateCurrentNumber(userAccount.getTwoStepCode());
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return currentValidCode.equals(providedCode);
     }
 
     /**

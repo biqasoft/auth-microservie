@@ -5,11 +5,9 @@
 package com.biqasoft.users.config;
 
 import com.biqasoft.users.auth.CurrentUserContextProvider;
-import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.authenticate.RequestAuthenticateService;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
-import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -52,8 +50,10 @@ public class InternalAuthHeaderFilter implements Filter {
 
         // if no auth header or ! skip auth if request is to auth
         if (!StringUtils.isEmpty(authHeader) && !((HttpServletRequest) req).getServletPath().equals("/v1/users/auth")) {
-            UserNameWithPassword userNameWithPassword = AuthHelper.processTokenHeaderToUserNameAndPassword(authHeader);
-            AuthenticateResponse authenticateResponse = requestAuthenticateService.authenticateResponse(AuthenticateRequest.fromUserNameWithPassword(userNameWithPassword));
+            AuthenticateRequest authenticateRequest = new AuthenticateRequest();
+            authenticateRequest.setToken(authHeader);
+
+            AuthenticateResponse authenticateResponse = requestAuthenticateService.authenticateResponse(authenticateRequest);
             if (authenticateResponse.getAuthenticated()) {
                 AuthServerInternalAuth authentication = new AuthServerInternalAuth(authenticateResponse);
                 SecurityContextHolder.getContext().setAuthentication(authentication);

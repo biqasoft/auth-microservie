@@ -17,6 +17,14 @@
 
     <dependencies>
 
+        <!-- https://mvnrepository.com/artifact/com.j256.two-factor-auth/two-factor-auth -->
+        <dependency>
+            <groupId>com.j256.two-factor-auth</groupId>
+            <artifactId>two-factor-auth</artifactId>
+            <version>0.2</version>
+        </dependency>
+
+
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>

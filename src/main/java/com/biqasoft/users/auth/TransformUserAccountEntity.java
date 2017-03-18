@@ -42,6 +42,9 @@ public class TransformUserAccountEntity {
         account.setLastOnline(internalUser.getLastOnline());
         account.setPersonalSettings(internalUser.getPersonalSettings());
         account.setUsername(internalUser.getUsername());
+        account.setTwoStepEnabled(internalUser.isTwoStepActivated());
+
+        account.setDomains(List.of(internalUser.getDomain()));
 
         return account;
     }
@@ -73,6 +76,8 @@ public class TransformUserAccountEntity {
         account.setLastOnline(internalUser.getLastOnline());
         account.setPersonalSettings(internalUser.getPersonalSettings());
         account.setUsername(internalUser.getUsername());
+
+        account.setDomains(internalUser.getDomains());
 
         return account;
     }
