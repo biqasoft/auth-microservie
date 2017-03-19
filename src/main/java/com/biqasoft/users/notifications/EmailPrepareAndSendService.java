@@ -41,7 +41,7 @@ public class EmailPrepareAndSendService {
     @Autowired
     public EmailPrepareAndSendService(EmailSenderProvider emailSenderProvider,
                                       @Value("${biqa.urls.http.cloud}") String baseCloudUrl,
-                                      @Value("${biqa.urls.http.cloud}") String biqaSupportEmail,
+                                      @Value("${biqa.urls.support.email}") String biqaSupportEmail,
                                       @Value("${biqa.urls.http.support}") String biqaSupportUrl,
                                       @Value("${biqa.notification.email.sender.email}") String senderEmail,
                                       @Value("${biqa.notification.header.system}") String systemName
