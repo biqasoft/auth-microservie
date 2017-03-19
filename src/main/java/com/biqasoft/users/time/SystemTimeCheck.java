@@ -10,12 +10,15 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 
 /**
+ * Check time from google and compare with local time
+ *
  * Created by ya on 3/18/2017.
  */
 @Service
 @ConditionalOnProperty("biqa.check.time.system")
 public class SystemTimeCheck {
 
+    private static final int TIME_DIFF_THRESHOLD = 2000;
     private final GoogleTimeCheck googleTimeCheck;
     private static final Logger logger = LoggerFactory.getLogger(SystemTimeCheck.class);
 
@@ -29,11 +32,12 @@ public class SystemTimeCheck {
         try {
             ResponseEntity<byte[]> time = googleTimeCheck.getTime();
 
+            // ignore network latency
             long date = time.getHeaders().getFirstDate("Date");
             Date googleTime = new Date(date);
             Date systemTime = new Date();
 
-            if (Math.abs(systemTime.getTime() - googleTime.getTime()) > 1000) {
+            if (Math.abs(systemTime.getTime() - googleTime.getTime()) > TIME_DIFF_THRESHOLD) {
                 logger.error("Large time difference. Two factor auth may work incorrect. Google time = {} Current system time is = {}", googleTime.toString(), systemTime.toString());
             }
         } catch (Exception e) {
