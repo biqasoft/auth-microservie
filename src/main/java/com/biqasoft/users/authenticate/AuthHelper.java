@@ -4,9 +4,9 @@
 
 package com.biqasoft.users.authenticate;
 
-import com.biqasoft.common.exceptions.InvalidRequestException;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.tomcat.util.codec.binary.Base64;
 
@@ -21,55 +21,86 @@ import java.util.Objects;
  */
 public class AuthHelper {
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper;
+
+    static {
+        objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     /**
      * see {@link org.springframework.security.web.authentication.www.BasicAuthenticationFilter#extractAndDecodeHeader(String, HttpServletRequest)}
      *
-     * @param token
-     * @return
+     * @param token HTTP Authorization header value
+     * @return extracted data from header
      */
     public static UserNameWithPassword processTokenHeaderToUserNameAndPassword(String token) {
-        String decodedToken;
+        UserNameWithPassword result = null;
+
         if (token.startsWith("Basic ")) {
-            try {
-                String[] strings = token.split("Basic ", 2);
-                if (strings.length != 2) {
-                    throw new InvalidRequestException("Invalid basic authentication token");
-                }
-
-                if (!Objects.equals(strings[0], "")) {
-                    throw new InvalidRequestException("Invalid basic authentication token");
-                }
-
-                token = strings[1];
-
-                decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8"))); // spring security bug in decode from base64 -> use tomcat. see tests
-                int delim = decodedToken.indexOf(":");
-                if (delim == -1) {
-                    throw new InvalidRequestException("Invalid basic authentication token");
-                }
-
-                String[] loginPlusPassword = {decodedToken.substring(0, delim), decodedToken.substring(delim + 1)};
-
-                UserNameWithPassword userNameWithPassword = new UserNameWithPassword();
-                userNameWithPassword.username = loginPlusPassword[0];
-                userNameWithPassword.password = loginPlusPassword[1];
-                return userNameWithPassword;
-            } catch (Exception e) {
-                throw new BiqaAuthenticationLocalizedException("auth.exception.empty_password");
-            }
+            result = tryExtractBasicAuth(token);
         } else if (token.startsWith("Biqa ")) {
-            try {
-                token = token.replace("Biqa ", "");// / spring security bug in decode from base64 -> use tomcat. see tests
-                decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8")));
-                return objectMapper.readValue(decodedToken, UserNameWithPassword.class);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            result = tryExtractBiqaAuth(token);
         }
 
-        throw new BiqaAuthenticationLocalizedException("auth.exception.empty_password");
+        if (result == null) {
+            throw new BiqaAuthenticationLocalizedException("auth.exception.empty_password");
+        } else {
+            return result;
+        }
+
+    }
+
+    /**
+     *
+     * @param token HTTP Authorization header value
+     * @return extracted data from header, or null if can not process header, or error happened
+     */
+    private static UserNameWithPassword tryExtractBiqaAuth(String token) {
+        String decodedToken;
+        try {
+            token = token.replace("Biqa ", "");// / spring security bug in decode from base64 -> use tomcat. see tests
+            decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8")));
+            return objectMapper.readValue(decodedToken, UserNameWithPassword.class);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param token HTTP Authorization header value
+     * @return extracted data from header, or null if can not process header, or error happened
+     */
+    private static UserNameWithPassword tryExtractBasicAuth(String token) {
+        String decodedToken;
+        try {
+            String[] strings = token.split("Basic ", 2);
+            if (strings.length != 2) {
+                return null;
+            }
+
+            if (!Objects.equals(strings[0], "")) {
+                return null;
+            }
+
+            token = strings[1];
+
+            decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8"))); // spring security bug in decode from base64 -> use tomcat. see tests
+            int delim = decodedToken.indexOf(":");
+            if (delim == -1) {
+                return null;
+            }
+
+            String[] loginPlusPassword = {decodedToken.substring(0, delim), decodedToken.substring(delim + 1)};
+
+            UserNameWithPassword userNameWithPassword = new UserNameWithPassword();
+            userNameWithPassword.username = loginPlusPassword[0];
+            userNameWithPassword.password = loginPlusPassword[1];
+            return userNameWithPassword;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }

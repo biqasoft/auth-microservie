@@ -12,6 +12,7 @@ import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
+import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.biqasoft.users.domain.DomainRepository;
 import com.biqasoft.users.domain.settings.DomainSettingsRepository;
@@ -32,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.validation.constraints.NotNull;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.List;
@@ -75,9 +77,15 @@ public class RequestAuthenticateService {
         this.authFailedLimit = authFailedLimit;
     }
 
-    private AuthenticateRequest tryAuthenticateResponseAsToken(AuthenticateRequest authenticateRequest) {
-        if (authenticateRequest != null && !StringUtils.isEmpty(authenticateRequest.getUsername())) {
+    private AuthenticateRequest tryAuthenticateResponseAsToken(@NotNull AuthenticateRequest authenticateRequest) {
+
+        // if we already have username and password - skip processing as token
+        if (authenticateRequest != null && !StringUtils.isEmpty(authenticateRequest.getUsername()) && !StringUtils.isEmpty(authenticateRequest.getPassword())) {
             return authenticateRequest;
+        }
+
+        if (authenticateRequest == null || authenticateRequest.getToken() == null) {
+            throw new BiqaAuthenticationLocalizedException("auth.exception.empty_password");
         }
 
         UserNameWithPassword userNameWithPassword = AuthHelper.processTokenHeaderToUserNameAndPassword(authenticateRequest.getToken());
@@ -86,7 +94,7 @@ public class RequestAuthenticateService {
         return authenticateRequest;
     }
 
-    public AuthenticateResponse authenticateResponse(AuthenticateRequest authenticateRequest) {
+    public AuthenticateResponse authenticateResponse(@NotNull AuthenticateRequest authenticateRequest) {
         authenticateRequest = tryAuthenticateResponseAsToken(authenticateRequest);
         authFailedLimit.checkAuthFailedLimit(authenticateRequest);
 
@@ -154,14 +162,14 @@ public class RequestAuthenticateService {
             // plain text password with active 2 step auth require send as token
             if (user.isTwoStepActivated()) {
                 String token = authenticateRequest.getToken();
-                if (StringUtils.isEmpty(token)){
+                if (StringUtils.isEmpty(token)) {
                     ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.two_step_require");
                 }
 
                 UserNameWithPassword userNameWithPassword = AuthHelper.processTokenHeaderToUserNameAndPassword(token);
                 if (userNameWithPassword != null && !StringUtils.isEmpty(userNameWithPassword.getTwoStepCode())) {
 
-                    if (!isTwoStepCodeValidForuser(user, userNameWithPassword.twoStepCode)){
+                    if (!isTwoStepCodeValidForUser(user, userNameWithPassword.twoStepCode)) {
                         ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.two_step_require");
                     }
 
@@ -170,6 +178,7 @@ public class RequestAuthenticateService {
                 }
             }
 
+            // encoder.matches() is hash - long operation
             if (!encoder.matches(password, user.getPassword())) {
                 isRootUser = checkRootAccount(username, password);
             }
@@ -212,12 +221,12 @@ public class RequestAuthenticateService {
         return response;
     }
 
-    public static boolean isTwoStepCodeValidForuser(UserAccount userAccount, String providedCode){
+    public static boolean isTwoStepCodeValidForUser(UserAccount userAccount, String providedCode) {
         String currentValidCode;
         try {
             currentValidCode = TimeBasedOneTimePasswordUtil.generateCurrentNumber(userAccount.getTwoStepCode());
         } catch (GeneralSecurityException e) {
-            e.printStackTrace();
+            logger.error("Error creating 2 step auth code", e);
             return false;
         }
         return currentValidCode.equals(providedCode);

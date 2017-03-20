@@ -15,7 +15,7 @@ import java.util.Date;
  * Created by ya on 3/18/2017.
  */
 @Service
-@ConditionalOnProperty("biqa.check.time.system")
+@ConditionalOnProperty("biqa.time.check")
 public class SystemTimeCheck {
 
     private static final int TIME_DIFF_THRESHOLD = 2000;

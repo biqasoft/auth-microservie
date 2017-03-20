@@ -13,7 +13,7 @@ Features:
 ### Via `Authorization` header
 
   - if value starts with `Basic ` - processed as RFC basic auth `Base64(username:password)`
-  - if value starts with `Biqa ` - processed as internal format `Base64(JSON.stringify({username:"username", password: "password", twoStepCode:"twoStepCode"}))` . If user has basic auth enabled, and you want to auth with username and password - this is only one method to get token credentials (which can be later used as just basic auth)
+  - if value starts with `Biqa ` - processed as internal format `Base64(JSON.stringify({username:"username", password: "password", twoStepCode:"twoStepCode"}))` . If user has 2 step auth enabled, and you want to auth with username and password - this is only one method to get token credentials (which can be later used as just basic auth)
 
 ###
 
@@ -27,6 +27,7 @@ Features:
 | biqa.auth.limits.interval.fail.times             |   10                                              |    no     | max times fail limit
 | biqa.auth.limits.interval                        |   0 * * * * *                                     |    no     | cron expression for clear ban (1 minute default)
 | biqa.auth.password.reset.default.ttl             |   3600000                                         |    no     | # one hour; 0 - disable expired function. Time to live for reset password token (which e.g sent via email)
+| biqa.time.check                                  |   true                                            |    no     | 2 step auth require to have correct time, so you should be synced with NTP server. If you enable this, you will get errors in logger, if there are large difference between global time and local system time
  
 ## Grpc
 
