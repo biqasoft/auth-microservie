@@ -1,6 +1,7 @@
 package com.biqasoft.users.auth;
 
 import com.biqasoft.entity.core.useraccount.UserAccount;
+import org.javers.common.collections.Lists;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,7 +45,9 @@ public class TransformUserAccountEntity {
         account.setUsername(internalUser.getUsername());
         account.setTwoStepEnabled(internalUser.isTwoStepActivated());
 
-        account.setDomains(List.of(internalUser.getDomain()));
+//        java 9 require
+//        account.setDomains(List.of(internalUser.getDomain()));
+        account.setDomains(Lists.asList(internalUser.getDomain()));
 
         return account;
     }
