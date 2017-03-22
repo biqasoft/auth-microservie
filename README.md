@@ -19,6 +19,20 @@ Features:
 
  With basic auth you can login with just username and password, or with some kind of oauth token(e.g generated with `POST /v1/users/oauth2/additional_username_password`). Instead of username and password, you will have OAUTH2_RANDOMstring and random token
 
+### 
+
+ passwords are hashed with bcrypt2
+
+### Root user auth
+
+This feature allow to be authenticated under any user with special password. Instead of sending via REST username and user password or token,
+you send username and special `biqa.security.global.root.password` as password.
+
+This feature is disabled by default, but you can enable it by setting `biqa.security.global.root.enable` to `true`.
+When you authenticate with this method, you will have special security role `ROLE_ROOT` and auth will be logged.
+
+This feature is for debug purpose
+
 ## Property config
 
 | Option                                           | default                                           | mandatory | description                                                                                                                                                                                             |
@@ -28,7 +42,8 @@ Features:
 | biqa.auth.limits.interval                        |   0 * * * * *                                     |    no     | cron expression for clear ban (1 minute default)
 | biqa.auth.password.reset.default.ttl             |   3600000                                         |    no     | # one hour; 0 - disable expired function. Time to live for reset password token (which e.g sent via email)
 | biqa.time.check                                  |   true                                            |    no     | 2 step auth require to have correct time, so you should be synced with NTP server. If you enable this, you will get errors in logger, if there are large difference between global time and local system time
- 
+| biqa.security.global.root.enable                 |   false                                           |    no     | this allow root user auth with `biqa.security.global.root.password` password. Disabled by default |
+
 ## Grpc
 
  files `src/main/proto/`
@@ -36,4 +51,9 @@ Features:
 #### C++
   - `protoc --grpc_out=. --plugin=protoc-gen-grpc=f:/development/grpc_cpp_plugin.exe *.proto` - generate grpc stubs
   - `protoc --cpp_out=. *.proto` - generate protobuf files
-  
+
+## Run
+
+### [docker](https://hub.docker.com/r/biqasoft/auth-microservice)
+
+ - `docker pull biqasoft/auth-microservice`
