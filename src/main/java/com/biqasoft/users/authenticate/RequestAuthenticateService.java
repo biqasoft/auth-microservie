@@ -6,6 +6,7 @@ package com.biqasoft.users.authenticate;
 
 import com.biqasoft.entity.constants.SYSTEM_CONSTS;
 import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.core.Domain;
 import com.biqasoft.users.auth.CurrentUserContextProviderImpl;
 import com.biqasoft.users.auth.TransformUserAccountEntity;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
@@ -37,6 +38,8 @@ import javax.validation.constraints.NotNull;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -218,6 +221,10 @@ public class RequestAuthenticateService {
         response.setDomain(domainRepository.findDomainById(CurrentUserContextProviderImpl.getDomainForInternalUser(user)));
 //        response.setDomainSettings(domainSettingsRepository.findDomainSettingsById(user.getDomain())); // do not add domain settings because they not always need
 
+        if (!StringUtils.isEmpty(authenticateRequest.getIp())){
+            checkUserIpPattern(authenticateRequest.getIp(), user, response.getDomain());
+        }
+
         return response;
     }
 
@@ -230,6 +237,26 @@ public class RequestAuthenticateService {
             return false;
         }
         return currentValidCode.equals(providedCode);
+    }
+
+    private void checkUserIpPattern(String remoteAddr, UserAccount userAccount, Domain domain) {
+        if (userAccount != null) {
+
+            // check for allowed IP address for user regexp pattern
+            if (!StringUtils.isEmpty(userAccount.getIpPattern())) {
+                Pattern pattern = Pattern.compile(userAccount.getIpPattern());
+                Matcher matcher = pattern.matcher(remoteAddr);
+
+                if (!matcher.matches()) {
+                    ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.ip_deny");
+                }
+            }
+
+            // check for active domain
+            if (!domain.isActive()) {
+                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.domain_inactive");
+            }
+        }
     }
 
     /**

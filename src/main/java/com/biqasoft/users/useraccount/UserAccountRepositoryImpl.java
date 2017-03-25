@@ -91,8 +91,7 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     @BiqaAuditObject
     public CreatedUser createUserAccountInDomain(UserAccount userAccount, String password) throws Exception {
         userAccount.setPassword(password); //dirty hack
-        CreatedUser createdUser = create(userAccount, false);
-        return createdUser;
+        return create(userAccount, false);
     }
 
     private CreatedUser create(UserAccount userAccount, boolean anonymous) throws Exception {

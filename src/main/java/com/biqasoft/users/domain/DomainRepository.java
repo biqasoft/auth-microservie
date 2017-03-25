@@ -25,6 +25,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 @Service
@@ -99,9 +100,18 @@ public class DomainRepository {
     }
 
 
-    public Domain addDomain(Domain note) {
+    /**
+     *
+     * @param domain new domain ofr customization
+     * @return new created domain
+     */
+    public Domain addDomain(@Nullable Domain domain) {
+        if (domain == null){
+            domain = new Domain();
+        }
+
         // do not allow to add domain with the same name
-        if (StringUtils.isEmpty(note.getDomain()) || findDomainById(note.getDomain()) != null){
+        if (StringUtils.isEmpty(domain.getDomain()) || findDomainById(domain.getDomain()) != null){
             String domainName;
 
             // try to generate not used domain name
@@ -109,11 +119,11 @@ public class DomainRepository {
                 domainName = domainNameRandomString.nextString();
                 if (findDomainById(domainName) == null) break;
             }
-            note.setDomain(domainName);
+            domain.setDomain(domainName);
         }
 
-        ops.insert(note);
-        return note;
+        ops.insert(domain);
+        return domain;
     }
 
     public Domain updateDomain(Domain note) {

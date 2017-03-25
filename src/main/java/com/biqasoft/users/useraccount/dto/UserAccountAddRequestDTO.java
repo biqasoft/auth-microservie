@@ -14,6 +14,8 @@ import io.swagger.annotations.ApiModelProperty;
     @ApiModelProperty("Does send email to new account with login and plain-text password")
     private boolean sendWelcomeEmail = false;
 
+
+    @ApiModelProperty("optional")
     private String domain;
 
     private String password = null;
