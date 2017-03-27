@@ -46,14 +46,15 @@ This feature is for debug purpose
 
 ## Grpc
 
- files `src/main/proto/`
+ - All protobuf and grpc files are located in: `src/main/proto`
 
 #### C++
+Example of generating code
+
   - `protoc --grpc_out=. --plugin=protoc-gen-grpc=f:/development/grpc_cpp_plugin.exe *.proto` - generate grpc stubs
   - `protoc --cpp_out=. *.proto` - generate protobuf files
 
 ## Run
 
-### [docker](https://hub.docker.com/r/biqasoft/auth-microservice)
-
- - `docker pull biqasoft/auth-microservice`
+ - [docker](https://hub.docker.com/r/biqasoft/auth-microservice) `docker pull biqasoft/auth-microservice`
+ - as fat jar - `mvn package`
