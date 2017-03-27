@@ -17,11 +17,8 @@ Features:
 
 ###
 
- With basic auth you can login with just username and password, or with some kind of oauth token(e.g generated with `POST /v1/users/oauth2/additional_username_password`). Instead of username and password, you will have OAUTH2_RANDOMstring and random token
-
-### 
-
- passwords are hashed with bcrypt2
+ - With basic auth you can login with just username and password, or with some kind of oauth token(e.g generated with `POST /v1/users/oauth2/additional_username_password`). Instead of username and password, you will have OAUTH2_RANDOMstring and random token
+ - passwords are hashed with bcrypt2
 
 ### Root user auth
 
