@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <version>2017.3.6</version>
+    <version>2017.3.7</version>
 
     <artifactId>auth-microservice</artifactId>
     <name>com.biqasoft.auth-microservice</name>
