@@ -27,7 +27,7 @@ public class GrpcServer {
         Server build = o.build();
 
         try {
-            logger.info("Server started, listening on " + port);
+            logger.info("grpc server started, listening on " + port);
             build.start();
         } catch (IOException e) {
             logger.error("Error in grpc", e);

@@ -73,7 +73,7 @@ public class CurrentUserContextProviderImpl implements CurrentUserContextProvide
                 throw new InvalidStateException("NULL domain for user " + userAccount.getId());
             }
 
-            userAccount = TransformUserAccountEntity.transform(internalUserEntity);
+            userAccount = UserAccountMapper.transform(internalUserEntity);
             setDomain(domainRepository.findDomainById(domain));
         }
 

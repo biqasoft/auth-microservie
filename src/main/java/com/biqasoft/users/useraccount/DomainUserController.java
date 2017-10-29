@@ -11,7 +11,7 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.PersonalSettings;
-import com.biqasoft.users.auth.TransformUserAccountEntity;
+import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import com.biqasoft.users.useraccount.dto.UserAccountAddRequestDTO;
@@ -52,7 +52,7 @@ public class DomainUserController {
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "", method = RequestMethod.GET)
     public List<com.biqasoft.entity.core.useraccount.UserAccount> findAllInDomainsUnsafe() {
-        return TransformUserAccountEntity.transform(userAccountRepository.findAllUsersInDomain());
+        return UserAccountMapper.transform(userAccountRepository.findAllUsersInDomain());
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -76,13 +76,13 @@ public class DomainUserController {
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "id/{id}", method = RequestMethod.GET)
     public com.biqasoft.entity.core.useraccount.UserAccount findUserById(@PathVariable("id") String id) {
-        return TransformUserAccountEntity.transform(userAccountRepository.findByUserId(id));
+        return UserAccountMapper.transform(userAccountRepository.findByUserId(id));
     }
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "fulltext_search", method = RequestMethod.POST)
     public List<com.biqasoft.entity.core.useraccount.UserAccount> search(@RequestBody UserSearchRequest searchRequest) {
-       return TransformUserAccountEntity.transform(userAccountRepository.fullTextSearch(searchRequest));
+       return UserAccountMapper.transform(userAccountRepository.fullTextSearch(searchRequest));
     }
 
     @ApiOperation(value = "add new user")
@@ -97,12 +97,12 @@ public class DomainUserController {
             emailPrepareAndSendService.sendWelcomeEmailWhenAddNewUserToDomain(userPosted, createdUser.getPassword());
         }
 
-       return TransformUserAccountEntity.transform(createdUser.getUserAccount());
+       return UserAccountMapper.transform(createdUser.getUserAccount());
     }
 
     @RequestMapping(method = RequestMethod.PUT)
     public com.biqasoft.entity.core.useraccount.UserAccount deleteUserAccount(@RequestBody UserAccount userPosted) throws Exception {
-        return TransformUserAccountEntity.transform(userAccountRepository.updateUserAccountForCurrentDomain(userPosted));
+        return UserAccountMapper.transform(userAccountRepository.updateUserAccountForCurrentDomain(userPosted));
     }
 
     @RequestMapping(value = "current_user/personal_settings", method = RequestMethod.PUT)

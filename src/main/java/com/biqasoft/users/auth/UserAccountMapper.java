@@ -9,12 +9,17 @@ import java.util.stream.Collectors;
 /**
  * Created by Nikita on 9/12/2016.
  */
-public class TransformUserAccountEntity {
+public class UserAccountMapper {
 
     public static List<UserAccount> transform (List<com.biqasoft.users.useraccount.UserAccount> internalUser){
-        return internalUser.stream().map(TransformUserAccountEntity::transform).collect(Collectors.toList());
+        return internalUser.stream().map(UserAccountMapper::transform).collect(Collectors.toList());
     }
 
+    /**
+     * Map internal microservice model to DTO
+     * @param internalUser internal model
+     * @return dto
+     */
     public static UserAccount transform (com.biqasoft.users.useraccount.UserAccount internalUser){
         UserAccount account = new UserAccount();
         account.setId(internalUser.getId());
@@ -52,6 +57,11 @@ public class TransformUserAccountEntity {
         return account;
     }
 
+    /**
+     * Map dto to internal microservice
+     * @param internalUser dto
+     * @return internal model
+     */
     public static com.biqasoft.users.useraccount.UserAccount transform (UserAccount internalUser){
         com.biqasoft.users.useraccount.UserAccount account = new com.biqasoft.users.useraccount.UserAccount();
         account.setId(internalUser.getId());

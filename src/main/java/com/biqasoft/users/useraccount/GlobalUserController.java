@@ -12,7 +12,7 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.entity.constants.SYSTEM_ROLES;
 import com.biqasoft.entity.core.Domain;
 import com.biqasoft.users.auth.CurrentUserContextProviderImpl;
-import com.biqasoft.users.auth.TransformUserAccountEntity;
+import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.domain.DomainRepository;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
@@ -50,12 +50,12 @@ public class GlobalUserController {
 
     @RequestMapping(value = "")
     public List<com.biqasoft.entity.core.useraccount.UserAccount> findUnsafeFindAllUsers() {
-        return TransformUserAccountEntity.transform(userAccountRepository.unsafeFindAllUsers());
+        return UserAccountMapper.transform(userAccountRepository.unsafeFindAllUsers());
     }
 
     @RequestMapping(value = "id/{id}")
     public com.biqasoft.entity.core.useraccount.UserAccount findUserById(@PathVariable("id") String id) {
-        return TransformUserAccountEntity.transform(userAccountRepository.unsafeFindUserById(id));
+        return UserAccountMapper.transform(userAccountRepository.unsafeFindUserById(id));
     }
 
     @RequestMapping(value = "search/domain/id/{id}")
@@ -93,7 +93,7 @@ public class GlobalUserController {
         CreatedUserDto response = new CreatedUserDto();
         response.setDomain(createdUserInternal.getDomain());
         response.setPassword(createdUserInternal.getPassword());
-        response.setUserAccount(TransformUserAccountEntity.transform(createdUserInternal.getUserAccount()));
+        response.setUserAccount(UserAccountMapper.transform(createdUserInternal.getUserAccount()));
 
         if (userAccountAddRequest.isSendWelcomeEmail()) {
             emailPrepareAndSendService.sendWelcomeEmailWhenCreateNewDomain(createdUserInternal.getUserAccount(), createdUserInternal.getPassword());
@@ -104,12 +104,12 @@ public class GlobalUserController {
     @ApiOperation(value = "find user by username or oauth2 token ")
     @RequestMapping(value = "find/username_or_oauth2_token", method = RequestMethod.POST)
     public com.biqasoft.entity.core.useraccount.UserAccount create(@RequestBody UserAccountGet userAccountGet) {
-        return TransformUserAccountEntity.transform(userAccountRepository.findByUsernameOrOAuthToken(userAccountGet.username));
+        return UserAccountMapper.transform(userAccountRepository.findByUsernameOrOAuthToken(userAccountGet.username));
     }
 
     @RequestMapping(method = RequestMethod.PUT)
     public com.biqasoft.entity.core.useraccount.UserAccount updateUserAccount(@RequestBody UserAccount userPosted) throws Exception {
-        return TransformUserAccountEntity.transform(userAccountRepository.unsafeUpdateUserAccount(userPosted));
+        return UserAccountMapper.transform(userAccountRepository.unsafeUpdateUserAccount(userPosted));
     }
 
     @RequestMapping(value = "id/{id}", method = RequestMethod.DELETE)

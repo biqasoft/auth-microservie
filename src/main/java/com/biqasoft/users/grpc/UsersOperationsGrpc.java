@@ -1,6 +1,6 @@
 package com.biqasoft.users.grpc;
 
-import com.biqasoft.users.auth.TransformUserAccountEntity;
+import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.RequestAuthenticateService;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
@@ -42,67 +42,13 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
 
             if (authenticateResponse.getAuths() != null && authenticateResponse.getUserAccount() != null) {
                 builder.addAllAuths(authenticateResponse.getAuths());
-                builder.setUserAccount(transform(TransformUserAccountEntity.transform(authenticateResponse.getUserAccount())));
+                builder.setUserAccount(UserToGrpcMapper.transform(UserAccountMapper.transform(authenticateResponse.getUserAccount())));
             }
         } catch (BiqaAuthenticationLocalizedException e) {
-            builder.setError(e.getMessage());
+            builder.setError(e.getErrorResource().getCode());
             builder.setAuthenticated(false);
         }
         responseObserver.onNext(builder.build());
-    }
-
-    private com.biqasoft.users.grpc.UserOuterClass.User transform(UserAccount internalUser) {
-        UserOuterClass.User.Builder account = UserOuterClass.User.newBuilder();
-
-        account.setStatus(internalUser.getStatus());
-        account.setId(internalUser.getId());
-        account.setEnabled(internalUser.getEnabled());
-
-        if (internalUser.getFirstname() != null) {
-            account.setFirstname(internalUser.getFirstname());
-        }
-
-        if (internalUser.getLastname() != null) {
-            account.setLastname(internalUser.getLastname());
-        }
-
-        if (internalUser.getPatronymic() != null) {
-            account.setPatronymic(internalUser.getPatronymic());
-        }
-
-        if (internalUser.getEmail() != null) {
-            account.setEmail(internalUser.getEmail());
-        }
-
-        if (internalUser.getTelephone() != null) {
-            account.setTelephone(internalUser.getTelephone());
-        }
-
-        if (internalUser.getName() != null) {
-            account.setName(internalUser.getName());
-        }
-
-        if (internalUser.getAvatarUrl() != null) {
-            account.setAvatarUrl(internalUser.getAvatarUrl());
-        }
-
-//        if (internalUser.getRoles() != null) {
-//            account.addAllRoles(internalUser.getRoles());
-//        }
-
-        if (internalUser.getLanguage() != null) {
-            account.setLanguage(internalUser.getLanguage());
-        }
-
-        if (internalUser.getLastOnline() != null) {
-            account.setLastOnline(internalUser.getLastOnline().getTime());
-        }
-
-        if (internalUser.getUsername() != null) {
-            account.setUsername(internalUser.getUsername());
-        }
-
-        return account.build();
     }
 
     @Override
@@ -127,56 +73,7 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
         UserAccount internalUser = userAccountRepository.unsafeFindUserById(id);
 
         if (internalUser != null) {
-            UserOuterClass.User.Builder account = UserOuterClass.User.newBuilder();
-
-            account.setStatus(internalUser.getStatus());
-            account.setId(internalUser.getId());
-            account.setEnabled(internalUser.getEnabled());
-
-            if (internalUser.getFirstname() != null) {
-                account.setFirstname(internalUser.getFirstname());
-            }
-
-            if (internalUser.getLastname() != null) {
-                account.setLastname(internalUser.getLastname());
-            }
-
-            if (internalUser.getPatronymic() != null) {
-                account.setPatronymic(internalUser.getPatronymic());
-            }
-
-            if (internalUser.getEmail() != null) {
-                account.setEmail(internalUser.getEmail());
-            }
-
-            if (internalUser.getTelephone() != null) {
-                account.setTelephone(internalUser.getTelephone());
-            }
-
-            if (internalUser.getName() != null) {
-                account.setName(internalUser.getName());
-            }
-
-            if (internalUser.getAvatarUrl() != null) {
-                account.setAvatarUrl(internalUser.getAvatarUrl());
-            }
-
-//            if (internalUser.getRoles() != null) {
-//                account.addAllRoles(internalUser.getRoles());
-//            }
-
-            if (internalUser.getLanguage() != null) {
-                account.setLanguage(internalUser.getLanguage());
-            }
-
-            if (internalUser.getLastOnline() != null) {
-                account.setLastOnline(internalUser.getLastOnline().getTime());
-            }
-
-            if (internalUser.getUsername() != null) {
-                account.setUsername(internalUser.getUsername());
-            }
-
+            UserOuterClass.User.Builder account = UserToGrpcMapper.mapUserToGrpc(internalUser);
             return account.build();
         }
         return null;

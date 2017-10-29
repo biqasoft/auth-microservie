@@ -5,7 +5,7 @@ import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import org.springframework.stereotype.Service;
 
-import static com.biqasoft.users.authenticate.RequestAuthenticateService.isTwoStepCodeValidForUser;
+import static com.biqasoft.users.authenticate.chain.UserAuthChecks.isTwoStepCodeValidForUser;
 import static com.j256.twofactorauth.TimeBasedOneTimePasswordUtil.generateBase32Secret;
 
 /**

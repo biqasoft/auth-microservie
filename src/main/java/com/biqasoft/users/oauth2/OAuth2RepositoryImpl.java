@@ -56,11 +56,10 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
         UserAccount userAccount = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId());
 
         List<UserAccountOAuth2> tokens = new ArrayList<>(userAccount.getoAuth2s());
-        tokens.stream().map(x -> {
+        tokens.forEach(x -> {
             x.setAccessCode(null);
             x.setAccessToken(null);
-            return x;
-        }).collect(Collectors.toList());
+        });
         return tokens;
     }
 
