@@ -17,82 +17,79 @@ public class UserAccountMapper {
 
     /**
      * Map internal microservice model to DTO
-     * @param internalUser internal model
+     * @param msModel internal model
      * @return dto
      */
-    public static UserAccount transform (com.biqasoft.users.useraccount.UserAccount internalUser){
+    public static UserAccount transform (com.biqasoft.users.useraccount.UserAccount msModel){
         UserAccount account = new UserAccount();
-        account.setId(internalUser.getId());
+        account.setId(msModel.getId());
 
-        account.setFirstname(internalUser.getFirstname());
-        account.setLastname(internalUser.getLastname());
-        account.setPatronymic(internalUser.getPatronymic());
-        account.setEmail(internalUser.getEmail());
-        account.setTelephone(internalUser.getTelephone());
+        account.setFirstname(msModel.getFirstname());
+        account.setLastname(msModel.getLastname());
+        account.setPatronymic(msModel.getPatronymic());
+        account.setEmail(msModel.getEmail());
+        account.setTelephone(msModel.getTelephone());
 
-        account.setName(internalUser.getName());
-        account.setVersion(internalUser.getVersion());
-        account.setArchived(internalUser.isArchived());
-        account.setAvatarUrl(internalUser.getAvatarUrl());
-        account.setCreatedInfo(internalUser.getCreatedInfo());
-        account.setAlias(internalUser.getAlias());
+        account.setName(msModel.getName());
+        account.setVersion(msModel.getVersion());
+        account.setArchived(msModel.isArchived());
+        account.setAvatarUrl(msModel.getAvatarUrl());
+        account.setCreatedInfo(msModel.getCreatedInfo());
+        account.setAlias(msModel.getAlias());
 
-        account.setEnabled(internalUser.getEnabled());
-        account.setRoles(internalUser.getRoles());
-        account.setEffectiveRoles(internalUser.getEffectiveRoles());
-        account.setStatus(internalUser.getStatus());
-        account.setGroups(internalUser.getGroups());
-        account.setIpPattern(internalUser.getIpPattern());
+        account.setEnabled(msModel.getEnabled());
+        account.setRoles(msModel.getRoles());
+        account.setEffectiveRoles(msModel.getEffectiveRoles());
+        account.setStatus(msModel.getStatus());
+        account.setGroups(msModel.getGroups());
+        account.setIpPattern(msModel.getIpPattern());
 
-        account.setLanguage(internalUser.getLanguage());
-        account.setLastOnline(internalUser.getLastOnline());
-        account.setPersonalSettings(internalUser.getPersonalSettings());
-        account.setUsername(internalUser.getUsername());
-        account.setTwoStepEnabled(internalUser.isTwoStepActivated());
+        account.setLanguage(msModel.getLanguage());
+        account.setLastOnline(msModel.getLastOnline());
+        account.setPersonalSettings(msModel.getPersonalSettings());
+        account.setUsername(msModel.getUsername());
+        account.setTwoStepEnabled(msModel.isTwoStepActivated());
 
-//        java 9 require
-//        account.setDomains(List.of(internalUser.getDomain()));
-        account.setDomains(Lists.asList(internalUser.getDomain()));
-
+        account.setDomains(List.of(msModel.getDomain()));
         return account;
     }
 
     /**
      * Map dto to internal microservice
-     * @param internalUser dto
+     * @param dtoModel dto
      * @return internal model
      */
-    public static com.biqasoft.users.useraccount.UserAccount transform (UserAccount internalUser){
-        com.biqasoft.users.useraccount.UserAccount account = new com.biqasoft.users.useraccount.UserAccount();
-        account.setId(internalUser.getId());
+    public static com.biqasoft.users.useraccount.UserAccount transform (UserAccount dtoModel){
+        com.biqasoft.users.useraccount.UserAccount msModel = new com.biqasoft.users.useraccount.UserAccount();
+        msModel.setId(dtoModel.getId());
 
-        account.setFirstname(internalUser.getFirstname());
-        account.setLastname(internalUser.getLastname());
-        account.setPatronymic(internalUser.getPatronymic());
-        account.setEmail(internalUser.getEmail());
-        account.setTelephone(internalUser.getTelephone());
+        msModel.setFirstname(dtoModel.getFirstname());
+        msModel.setLastname(dtoModel.getLastname());
+        msModel.setPatronymic(dtoModel.getPatronymic());
+        msModel.setEmail(dtoModel.getEmail());
+        msModel.setTelephone(dtoModel.getTelephone());
 
-        account.setName(internalUser.getName());
-        account.setVersion(internalUser.getVersion());
-        account.setArchived(internalUser.isArchived());
-        account.setAvatarUrl(internalUser.getAvatarUrl());
-        account.setCreatedInfo(internalUser.getCreatedInfo());
-        account.setAlias(internalUser.getAlias());
+        msModel.setName(dtoModel.getName());
+        msModel.setVersion(dtoModel.getVersion());
+        msModel.setArchived(dtoModel.isArchived());
+        msModel.setAvatarUrl(dtoModel.getAvatarUrl());
+        msModel.setCreatedInfo(dtoModel.getCreatedInfo());
+        msModel.setAlias(dtoModel.getAlias());
 
-        account.setEnabled(internalUser.getEnabled());
-        account.setRoles(internalUser.getRoles());
-        account.setStatus(internalUser.getStatus());
-        account.setGroups(internalUser.getGroups());
-        account.setIpPattern(internalUser.getIpPattern());
+        msModel.setEnabled(dtoModel.getEnabled());
+        msModel.setRoles(dtoModel.getRoles());
+        msModel.setStatus(dtoModel.getStatus());
+        msModel.setGroups(dtoModel.getGroups());
+        msModel.setIpPattern(dtoModel.getIpPattern());
 
-        account.setLanguage(internalUser.getLanguage());
-        account.setLastOnline(internalUser.getLastOnline());
-        account.setPersonalSettings(internalUser.getPersonalSettings());
-        account.setUsername(internalUser.getUsername());
+        msModel.setLanguage(dtoModel.getLanguage());
+        msModel.setLastOnline(dtoModel.getLastOnline());
+        msModel.setPersonalSettings(dtoModel.getPersonalSettings());
+        msModel.setUsername(dtoModel.getUsername());
 
-        account.setDomains(internalUser.getDomains());
+        msModel.setDomains(dtoModel.getDomains());
 
-        return account;
+        return msModel;
     }
 
 }

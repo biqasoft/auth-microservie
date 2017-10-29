@@ -42,7 +42,7 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
 
             if (authenticateResponse.getAuths() != null && authenticateResponse.getUserAccount() != null) {
                 builder.addAllAuths(authenticateResponse.getAuths());
-                builder.setUserAccount(UserToGrpcMapper.transform(UserAccountMapper.transform(authenticateResponse.getUserAccount())));
+                builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(UserAccountMapper.transform(authenticateResponse.getUserAccount())));
             }
         } catch (BiqaAuthenticationLocalizedException e) {
             builder.setError(e.getErrorResource().getCode());
@@ -73,8 +73,7 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
         UserAccount internalUser = userAccountRepository.unsafeFindUserById(id);
 
         if (internalUser != null) {
-            UserOuterClass.User.Builder account = UserToGrpcMapper.mapUserToGrpc(internalUser);
-            return account.build();
+            return UsersToGrpcMapper.mapMsModelToGrpc(internalUser);
         }
         return null;
     }

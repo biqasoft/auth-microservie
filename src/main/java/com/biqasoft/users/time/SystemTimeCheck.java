@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 
 /**
- * Check time from google and compare with local time
+ * Check time from google and compare with local system time
  *
- * Created by ya on 3/18/2017.
- */
+ * 2FA requires sync time between client which generates code with server with also check and verify that code
+ **/
 @Service
 @ConditionalOnProperty("biqa.time.check")
 public class SystemTimeCheck {

@@ -55,3 +55,7 @@ Example of generating code
 
  - [docker](https://hub.docker.com/r/biqasoft/auth-microservice) `docker pull biqasoft/auth-microservice`
  - as fat jar - `mvn package`
+ 
+## Requirements
+
+ - Java 9
