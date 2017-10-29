@@ -48,17 +48,17 @@ public class GlobalUserController {
         this.emailPrepareAndSendService = emailPrepareAndSendService;
     }
 
-    @RequestMapping(value = "")
+    @GetMapping
     public List<com.biqasoft.entity.core.useraccount.UserAccount> findUnsafeFindAllUsers() {
         return UserAccountMapper.transform(userAccountRepository.unsafeFindAllUsers());
     }
 
-    @RequestMapping(value = "id/{id}")
+    @GetMapping(value = "id/{id}")
     public com.biqasoft.entity.core.useraccount.UserAccount findUserById(@PathVariable("id") String id) {
         return UserAccountMapper.transform(userAccountRepository.unsafeFindUserById(id));
     }
 
-    @RequestMapping(value = "search/domain/id/{id}")
+    @GetMapping(value = "search/domain/id/{id}")
     public Domain findDomainForUserId(@PathVariable("id") String id) {
         UserAccount byUserId = userAccountRepository.findByUserId(id);
         String domainForInternalUser = CurrentUserContextProviderImpl.getDomainForInternalUser(byUserId);
@@ -66,7 +66,7 @@ public class GlobalUserController {
     }
 
     @ApiOperation(value = "register new user in new domain with admin role")
-    @RequestMapping(value = "register", method = RequestMethod.POST)
+    @PostMapping(value = "register")
     public CreatedUserDto register(@RequestBody UserAccountAddRequestDTO userAccountAddRequest) throws Exception {
 
         // user with same email already exist
@@ -102,17 +102,17 @@ public class GlobalUserController {
     }
 
     @ApiOperation(value = "find user by username or oauth2 token ")
-    @RequestMapping(value = "find/username_or_oauth2_token", method = RequestMethod.POST)
+    @PostMapping(value = "find/username_or_oauth2_token")
     public com.biqasoft.entity.core.useraccount.UserAccount create(@RequestBody UserAccountGet userAccountGet) {
         return UserAccountMapper.transform(userAccountRepository.findByUsernameOrOAuthToken(userAccountGet.username));
     }
 
-    @RequestMapping(method = RequestMethod.PUT)
+    @PutMapping
     public com.biqasoft.entity.core.useraccount.UserAccount updateUserAccount(@RequestBody UserAccount userPosted) throws Exception {
         return UserAccountMapper.transform(userAccountRepository.unsafeUpdateUserAccount(userPosted));
     }
 
-    @RequestMapping(value = "id/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "id/{id}")
     public void updateUserAccount(@PathVariable("id") String id) throws Exception {
         userAccountRepository.deleteUserById(id);
     }

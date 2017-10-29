@@ -1,7 +1,9 @@
-package com.biqasoft.users.authenticate.chain;
+package com.biqasoft.users.authenticate.chain.impl;
 
 import com.biqasoft.entity.constants.SYSTEM_CONSTS;
 import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.users.authenticate.chain.AuthChainFilter;
+import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
@@ -18,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Authentication via OAuth2 tokens
+ * Authentication via OAuth2 token
  */
 @Service
 public class OAuth2AuthFilter implements AuthChainFilter {
@@ -89,6 +91,16 @@ public class OAuth2AuthFilter implements AuthChainFilter {
         }
 
         return result;
+    }
+
+    @Override
+    public String getName() {
+        return "OAuth2Auth";
+    }
+
+    @Override
+    public boolean twoFactorSupported() {
+        return false;
     }
 
 }

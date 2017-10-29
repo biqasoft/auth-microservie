@@ -26,9 +26,12 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * @author Nikita Bakaev, ya@nbakaev.ru
- *         Date: 7/25/2016
- *         All Rights Reserved
+ * Authenticate incoming user
+ * NOTE: that method does not authenticate user for auth endpoint,
+ * only for auth microservice REST methods
+ *
+ * @author Nikita Bakaev
+ *
  */
 @Component
 @Order(Ordered.LOWEST_PRECEDENCE)
@@ -49,6 +52,7 @@ public class InternalAuthHeaderFilter implements Filter {
         String authHeader = ((HttpServletRequest) req).getHeader("Authorization");
 
         // if no auth header or ! skip auth if request is to auth
+        // TODO: refactor endpoint
         if (!StringUtils.isEmpty(authHeader) && !((HttpServletRequest) req).getServletPath().equals("/v1/users/auth")) {
             AuthenticateRequest authenticateRequest = new AuthenticateRequest();
             authenticateRequest.setToken(authHeader);

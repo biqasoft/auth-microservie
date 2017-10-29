@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.validation.constraints.NotNull;
 import java.security.GeneralSecurityException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,16 +25,22 @@ public class UserAuthChecks {
 
     /**
      * This function check if 2FA token is valid for provided user
+     *
      * @param userAccount user
-     * @param code2FA provided by user token
+     * @param code2FA     provided by user token
      * @return true if 2FA code is valid. false if token is wrong
      */
-    public boolean isTwoStepCodeValidForUser(UserAccount userAccount, String code2FA) {
+    public boolean isTwoStepCodeValidForUser(UserAccount userAccount, @NotNull String code2FA) {
         String currentValidCode;
         try {
+            if (StringUtils.isEmpty(userAccount.getTwoStepCode())) {
+                logger.error("Empty 2FA auth code for user {}", userAccount.getUsername());
+                return false;
+            }
+
             currentValidCode = TimeBasedOneTimePasswordUtil.generateCurrentNumber(userAccount.getTwoStepCode());
         } catch (GeneralSecurityException e) {
-            logger.error("Error creating 2 step auth code", e);
+            logger.error("Error creating 2FA auth code", e);
             return false;
         }
         return currentValidCode.equals(code2FA);
@@ -42,12 +49,12 @@ public class UserAuthChecks {
     /**
      * 1) Check that user can authenticate with IP address
      * 2) Check that user domain is active
-     *
+     * <p>
      * If IP address is not allowed, or domain is inactive - {@link com.biqasoft.users.config.BiqaAuthenticationLocalizedException} exception will be thrown
      *
      * @param remoteAddress IP address of remote user
-     * @param userAccount user
-     * @param domain user domain
+     * @param userAccount   user
+     * @param domain        user domain
      */
     public void checkUserIpPatternAndActiveDomain(String remoteAddress, UserAccount userAccount, Domain domain) {
         if (userAccount != null) {

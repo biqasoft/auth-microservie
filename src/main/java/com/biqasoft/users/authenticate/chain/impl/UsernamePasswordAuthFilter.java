@@ -1,6 +1,9 @@
-package com.biqasoft.users.authenticate.chain;
+package com.biqasoft.users.authenticate.chain.impl;
 
 import com.biqasoft.users.authenticate.AuthHelper;
+import com.biqasoft.users.authenticate.chain.AuthChainFilter;
+import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
+import com.biqasoft.users.authenticate.chain.UserAuthChecks;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
@@ -12,13 +15,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
 
+/**
+ * Authentication via username and password
+ */
 @Service
 public class UsernamePasswordAuthFilter implements AuthChainFilter {
 
@@ -88,6 +93,16 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
         result.setSuccessProcessed(true);
 
         return result;
+    }
+
+    @Override
+    public String getName() {
+        return "UsernamePassword";
+    }
+
+    @Override
+    public boolean twoFactorSupported() {
+        return true;
     }
 
 }

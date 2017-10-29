@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
+ * TODO: refactor to auth chain
+ *
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/25/2016
  *         All Rights Reserved

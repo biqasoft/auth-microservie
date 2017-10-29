@@ -13,17 +13,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * TODO: separate to DTO
+ *
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/22/2016
  *         All Rights Reserved
  */
 public class AuthenticateResponse implements Serializable {
 
+    // TODO: separate to DTO
     private com.biqasoft.entity.core.useraccount.UserAccount userAccount;
+
+    // is user authenticated
     private Boolean authenticated = false;
+
+    // list of user ROLES
     private List<String> auths = new ArrayList<>();
 
+    // current authenticated user domain
     private Domain domain;
+
+    // current authenticated user domain settings
     private DomainSettings domainSettings;
 
 

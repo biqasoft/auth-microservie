@@ -57,14 +57,14 @@ public class DomainUserController {
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "2step", method = RequestMethod.POST)
-    public UserSecondFactorService.SecondFactorResponse twoStepAuth() {
-        return userSecondFactorService.processRequest();
+    public UserSecondFactorService.SecondFactorResponseDTO twoStepAuth() {
+        return userSecondFactorService.generateSecret2FactorForUser();
     }
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "2step/modify", method = RequestMethod.POST)
     public void twoStepAuth(@RequestBody TwoStepModifyRequest twoStepModifyRequest) {
-        userSecondFactorService.modifyUserTwoStep(twoStepModifyRequest.isEnabled(), twoStepModifyRequest.getCode());
+        userSecondFactorService.tryToChange2FactorMode(twoStepModifyRequest.isEnabled(), twoStepModifyRequest.getCode());
     }
 
     @PreAuthorize("isAuthenticated()")

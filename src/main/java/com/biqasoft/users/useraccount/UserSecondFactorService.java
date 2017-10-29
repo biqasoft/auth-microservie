@@ -22,7 +22,12 @@ public class UserSecondFactorService {
         this.currentUser = currentUser;
     }
 
-    public void modifyUserTwoStep(boolean newMode, String code) {
+    /**
+     * Request to change user 2FA
+     * @param newMode should be 2FA enabled
+     * @param code - if 2FA is enabled and user want to disable it
+     */
+    public void tryToChange2FactorMode(boolean newMode, String code) {
         UserAccount byUserId = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId());
 
         if (byUserId.isTwoStepActivated() != newMode) {
@@ -31,7 +36,7 @@ public class UserSecondFactorService {
                 if (isTwoStepCodeValidForUser(byUserId, code)) {
                     byUserId.setTwoStepActivated(newMode);
                     userAccountRepository.unsafeUpdateUserAccount(byUserId);
-                }else{
+                } else {
                     ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("useraccount.security.2step.code.invalid.confirmation");
                 }
             } else {
@@ -42,8 +47,16 @@ public class UserSecondFactorService {
         }
     }
 
-    public SecondFactorResponse processRequest() {
-        SecondFactorResponse secondFactorResponse = new SecondFactorResponse();
+//    TODO: generify for any user generate, not only spring context
+//    public SecondFactorResponseDTO generateSecret2FactorForUser(UserAccount account) {
+//
+//    }
+
+    /**
+     * @return DTO with secret code for user
+     */
+    public SecondFactorResponseDTO generateSecret2FactorForUser() {
+        SecondFactorResponseDTO secondFactorResponseDTO = new SecondFactorResponseDTO();
 
         com.biqasoft.entity.core.useraccount.UserAccount currentUserObj = currentUser.getCurrentUser();
         String base32Secret = generateBase32Secret();
@@ -57,11 +70,11 @@ public class UserSecondFactorService {
         byUserId.setTwoStepActivated(false);
         userAccountRepository.unsafeUpdateUserAccount(byUserId);
 
-        secondFactorResponse.setImage(imageUrl);
-        return secondFactorResponse;
+        secondFactorResponseDTO.setImage(imageUrl);
+        return secondFactorResponseDTO;
     }
 
-    static class SecondFactorResponse {
+    static class SecondFactorResponseDTO {
 
         private String image;
 
