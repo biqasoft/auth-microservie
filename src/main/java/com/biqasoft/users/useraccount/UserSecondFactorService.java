@@ -3,9 +3,14 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import static com.biqasoft.users.authenticate.chain.UserAuthChecks.isTwoStepCodeValidForUser;
+import javax.validation.constraints.NotNull;
+import java.security.GeneralSecurityException;
+
 import static com.j256.twofactorauth.TimeBasedOneTimePasswordUtil.generateBase32Secret;
 
 /**
@@ -13,6 +18,8 @@ import static com.j256.twofactorauth.TimeBasedOneTimePasswordUtil.generateBase32
  */
 @Service
 public class UserSecondFactorService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserSecondFactorService.class);
 
     private final UserAccountRepository userAccountRepository;
     private final CurrentUser currentUser;
@@ -34,18 +41,43 @@ public class UserSecondFactorService {
             if (newMode) {
                 // enable
                 if (isTwoStepCodeValidForUser(byUserId, code)) {
-                    byUserId.setTwoStepActivated(newMode);
+                    byUserId.setTwoStepActivated(true);
                     userAccountRepository.unsafeUpdateUserAccount(byUserId);
                 } else {
                     ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("useraccount.security.2step.code.invalid.confirmation");
                 }
             } else {
                 // disable
-                byUserId.setTwoStepActivated(newMode);
+                byUserId.setTwoStepActivated(false);
                 userAccountRepository.unsafeUpdateUserAccount(byUserId);
             }
         }
     }
+
+
+    /**
+     * This function check if 2FA token is valid for provided user
+     *
+     * @param userAccount user
+     * @param code2FA     provided by user token
+     * @return true if 2FA code is valid. false if token is wrong
+     */
+    public boolean isTwoStepCodeValidForUser(UserAccount userAccount, @NotNull String code2FA) {
+        String currentValidCode;
+        try {
+            if (StringUtils.isEmpty(userAccount.getTwoStepCode())) {
+                logger.info("Empty 2FA auth code for user {}", userAccount.getUsername());
+                return false;
+            }
+
+            currentValidCode = TimeBasedOneTimePasswordUtil.generateCurrentNumber(userAccount.getTwoStepCode());
+        } catch (GeneralSecurityException e) {
+            logger.error("Error creating 2FA auth code", e);
+            return false;
+        }
+        return currentValidCode.equals(code2FA);
+    }
+
 
 //    TODO: generify for any user generate, not only spring context
 //    public SecondFactorResponseDTO generateSecret2FactorForUser(UserAccount account) {

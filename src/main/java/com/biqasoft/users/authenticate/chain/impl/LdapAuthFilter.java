@@ -20,7 +20,12 @@ public class LdapAuthFilter implements AuthChainFilter {
     }
 
     @Override
-    public boolean twoFactorSupported() {
+    public String getDescription() {
+        return "Authentication via LDAP and Active Directory";
+    }
+
+    @Override
+    public boolean is2FASupported() {
         return false;
     }
 

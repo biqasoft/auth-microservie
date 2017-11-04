@@ -7,7 +7,7 @@ package com.biqasoft.users.config;
 import com.biqasoft.users.auth.CurrentUserContextProvider;
 import com.biqasoft.users.authenticate.RequestAuthenticateService;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
-import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
+import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -57,11 +57,11 @@ public class InternalAuthHeaderFilter implements Filter {
             AuthenticateRequest authenticateRequest = new AuthenticateRequest();
             authenticateRequest.setToken(authHeader);
 
-            AuthenticateResponse authenticateResponse = requestAuthenticateService.authenticateResponse(authenticateRequest);
-            if (authenticateResponse.getAuthenticated()) {
-                AuthServerInternalAuth authentication = new AuthServerInternalAuth(authenticateResponse);
+            AuthenticateResult authenticateResult = requestAuthenticateService.authenticateRequest(authenticateRequest);
+            if (authenticateResult.getAuthenticated()) {
+                AuthServerInternalAuth authentication = new AuthServerInternalAuth(authenticateResult);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                currentUserContextProvider.setDomain(authenticateResponse.getDomain());
+                currentUserContextProvider.setDomain(authenticateResult.getDomain());
             }
         }
 
@@ -73,15 +73,15 @@ public class InternalAuthHeaderFilter implements Filter {
 
     class AuthServerInternalAuth implements Authentication {
 
-        private AuthenticateResponse authenticateResponse;
+        private AuthenticateResult authenticateResult;
 
-        public AuthServerInternalAuth(AuthenticateResponse authenticateResponse) {
-            this.authenticateResponse = authenticateResponse;
+        public AuthServerInternalAuth(AuthenticateResult authenticateResult) {
+            this.authenticateResult = authenticateResult;
         }
 
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
-            return authenticateResponse.getAuths().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+            return authenticateResult.getAuths().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         }
 
         @Override
@@ -91,19 +91,19 @@ public class InternalAuthHeaderFilter implements Filter {
 
         @Override
         public Object getDetails() {
-            return authenticateResponse.getUserAccount();
+            return authenticateResult.getUserAccount();
         }
 
         @Override
         public Object getPrincipal() {
-            User user = new User(authenticateResponse.getUserAccount().getUsername(), (String) getCredentials(), authenticateResponse.getUserAccount().getEnabled(),
+            User user = new User(authenticateResult.getUserAccount().getUsername(), (String) getCredentials(), authenticateResult.getUserAccount().getEnabled(),
                                  true, true, true, getAuthorities());
             return user;
         }
 
         @Override
         public boolean isAuthenticated() {
-            return authenticateResponse.getAuthenticated();
+            return authenticateResult.getAuthenticated();
         }
 
         @Override
@@ -112,7 +112,7 @@ public class InternalAuthHeaderFilter implements Filter {
 
         @Override
         public String getName() {
-            return authenticateResponse.getUserAccount().getUsername();
+            return authenticateResult.getUserAccount().getUsername();
         }
     }
 

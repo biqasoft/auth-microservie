@@ -11,11 +11,10 @@ import com.biqasoft.users.oauth2.OAuth2Repository;
 import com.biqasoft.users.oauth2.UserAccountOAuth2;
 import com.biqasoft.users.useraccount.UserAccount;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class OAuth2AuthFilter implements AuthChainFilter {
         String password = authenticateRequest.getPassword();
         String username = authenticateRequest.getUsername();
 
-        List<GrantedAuthority> auths;
+        List<String> auths;
 
         // if username start with following characters - this is oauth auto
         // generated username
@@ -73,20 +72,20 @@ public class OAuth2AuthFilter implements AuthChainFilter {
 
             if (!token.getRoles().isEmpty()) {
                 // this is roles, that user grant for this oauth token
-                auths = AuthorityUtils.commaSeparatedStringToAuthorityList(token.getRolesCSV());
+                auths = token.getRoles();
 
                 // special OAuth role that grant all actual
                 // user permissions(Spring roles)
                 if (token.getRoles().contains(SYSTEM_ROLES.OAUTH_ALL_USER)) {
-                    auths = AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRolesCSV());
+                    auths = user.getRoles();
                 }
             } else {
-                auths = AuthorityUtils.NO_AUTHORITIES;
+                auths = new ArrayList<>();
             }
-            auths.add(new SimpleGrantedAuthority(SYSTEM_ROLES.OAUTH_AUTHENTICATED));
+            auths.add(SYSTEM_ROLES.OAUTH_AUTHENTICATED);
 
-            result.setAccount(user);
-            result.setAuths(auths);
+            result.getAuthenticateResult().setUserAccount(user);
+            result.getAuthenticateResult().setAuths(auths);
             result.setSuccessProcessed(true);
         }
 
@@ -99,7 +98,12 @@ public class OAuth2AuthFilter implements AuthChainFilter {
     }
 
     @Override
-    public boolean twoFactorSupported() {
+    public String getDescription() {
+        return "Authentication via OAuth2 application token";
+    }
+
+    @Override
+    public boolean is2FASupported() {
         return false;
     }
 

@@ -9,18 +9,14 @@
 package com.biqasoft.users.authenticate;
 
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
-import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
+import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
- * @author Nikita Bakaev, ya@nbakaev.ru
- *         Date: 10/5/2015
- *         All Rights Reserved
+ * @author Nikita Bakaev
  */
 @RestController
 @Api("Auth controller")
@@ -35,9 +31,9 @@ public class UserAuthenticateController {
     }
 
     @ApiOperation(value = "auth")
-    @RequestMapping(value = "", method = RequestMethod.POST)
-    public AuthenticateResponse authenticateRequest(@RequestBody AuthenticateRequest authenticateRequest, HttpServletResponse response) {
-        return requestAuthenticateService.authenticateResponse(authenticateRequest);
+    @PostMapping
+    public AuthenticateResult authenticateRequest(@RequestBody AuthenticateRequest authenticateRequest) {
+        return requestAuthenticateService.authenticateRequest(authenticateRequest);
     }
 
 }

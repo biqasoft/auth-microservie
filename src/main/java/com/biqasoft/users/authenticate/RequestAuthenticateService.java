@@ -6,12 +6,11 @@ package com.biqasoft.users.authenticate;
 
 import com.biqasoft.entity.constants.SYSTEM_ROLES;
 import com.biqasoft.users.auth.CurrentUserContextProviderImpl;
-import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.chain.AuthChainFilter;
 import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
 import com.biqasoft.users.authenticate.chain.UserAuthChecks;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
-import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
+import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
@@ -35,7 +34,6 @@ import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -45,17 +43,8 @@ import java.util.stream.Collectors;
 @Service
 public class RequestAuthenticateService {
 
-    private final OAuth2Repository oAuth2Repository;
     private static final Logger logger = LoggerFactory.getLogger(RequestAuthenticateService.class);
-    private final UserAccountRepository userAccountRepository;
-
-    private final DomainSettingsRepository domainSettingsRepository;
     private final DomainRepository domainRepository;
-
-    private final SimpleGrantedAuthority rootAuthority = new SimpleGrantedAuthority(SYSTEM_ROLES.ROOT_USER);
-
-    private final Boolean enableRootSystemUser;
-    private final String passwordRootSystemUser;
 
     private final AuthFailedLimit authFailedLimit;
 
@@ -64,17 +53,8 @@ public class RequestAuthenticateService {
     private List<AuthChainFilter> authChainFilters;
 
     @Autowired
-    public RequestAuthenticateService(OAuth2Repository oAuth2Repository, UserAccountRepository userAccountRepository,
-                                      @Value("${biqa.security.global.root.enable:false}") Boolean enableRootSystemUser,
-                                      @Value("${biqa.security.global.root.password:NO_PASSWORD}") String passwordRootSystemUser, PasswordEncoder encoder,
-                                      DomainRepository domainRepository, DomainSettingsRepository domainSettingsRepository, AuthFailedLimit authFailedLimit,
-                                      UserAuthChecks userAuthChecks, List<AuthChainFilter> authChainFilters) {
-        this.oAuth2Repository = oAuth2Repository;
-        this.userAccountRepository = userAccountRepository;
-        this.enableRootSystemUser = enableRootSystemUser;
-        this.passwordRootSystemUser = passwordRootSystemUser;
+    public RequestAuthenticateService(DomainRepository domainRepository, AuthFailedLimit authFailedLimit, UserAuthChecks userAuthChecks, List<AuthChainFilter> authChainFilters) {
         this.domainRepository = domainRepository;
-        this.domainSettingsRepository = domainSettingsRepository;
         this.authFailedLimit = authFailedLimit;
         this.userAuthChecks = userAuthChecks;
 
@@ -82,6 +62,12 @@ public class RequestAuthenticateService {
             throw new IllegalArgumentException("AuthChainFilter can not be empty");
         }
         this.authChainFilters = authChainFilters;
+
+        logger.info("The following filter chain (and order) will be used: ");
+
+        for (AuthChainFilter authChainFilter : this.authChainFilters) {
+            logger.info(authChainFilter.getName() + " - " + authChainFilter.getDescription());
+        }
     }
 
     private AuthenticateRequest tryAuthenticateResponseAsToken(@NotNull AuthenticateRequest authenticateRequest) {
@@ -101,32 +87,28 @@ public class RequestAuthenticateService {
         return authenticateRequest;
     }
 
-    public AuthenticateResponse authenticateResponse(@NotNull AuthenticateRequest authenticateRequest) {
+    public AuthenticateResult authenticateRequest(@NotNull AuthenticateRequest authenticateRequest) {
         authenticateRequest = tryAuthenticateResponseAsToken(authenticateRequest);
         authFailedLimit.checkAuthFailedLimit(authenticateRequest);
-
-        boolean isRootUser = false;
-
-        List<GrantedAuthority> auths;
 
         for (AuthChainFilter authChainFilter : authChainFilters) {
             AuthChainOneFilterResult process = authChainFilter.process(authenticateRequest);
             if (process.isForceReturn()){
-                return process.getAuthenticateResponse();
+                return process.getAuthenticateResult();
             }
 
             if (process.isSuccessProcessed()){
-                return process.getAuthenticateResponse();
+                return process.getAuthenticateResult();
             }
 
             // process by next filter
             continue;
         }
 
-        if (!StringUtils.hasText(password)) {
-            logger.info("Username {}: no password provided", username);
-            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.empty_password");
-        }
+//        if (!StringUtils.hasText(password)) {
+//            logger.info("Username {}: no password provided", username);
+//            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.empty_password");
+//        }
 
          else {
 
@@ -141,29 +123,16 @@ public class RequestAuthenticateService {
                 authFailedLimit.processFailedAuth(authenticateRequest);
                 ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.user_disabled");
             }
-            if (!user.getRoles().isEmpty()) {
-                auths = AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRolesCSV());
-            } else {
-                auths = AuthorityUtils.NO_AUTHORITIES;
-            }
+//            if (!user.getRoles().isEmpty()) {
+//                auths = AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRolesCSV());
+//            } else {
+//                auths = AuthorityUtils.NO_AUTHORITIES;
+//            }
 
             // if we auth with root password - add special role
-            if (isRootUser) auths.add(rootAuthority);
         }
 
-        // security check than user can not add ROLE_ROOT user manually
-        if (!isRootUser) {
-            if (auths.contains(rootAuthority)) {
-                auths.remove(rootAuthority);
-            }
-        }
 
-//        AuthenticateResponse response = new AuthenticateResponse();
-//        response.setAuths(auths.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
-//        response.setUserAccount(UserAccountMapper.transform(user));
-//        response.setAuthenticated(true);
-
-        response.setDomain(domainRepository.findDomainById(CurrentUserContextProviderImpl.getDomainForInternalUser(user)));
 //        response.setDomainSettings(domainSettingsRepository.findDomainSettingsById(user.getDomain())); // do not add domain settings because they not always need
 
         if (!StringUtils.isEmpty(authenticateRequest.getIp())){

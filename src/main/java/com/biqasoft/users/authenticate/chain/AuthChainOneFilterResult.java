@@ -1,11 +1,10 @@
 package com.biqasoft.users.authenticate.chain;
 
-import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
-import com.biqasoft.users.useraccount.UserAccount;
-import org.springframework.security.core.GrantedAuthority;
+import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 
-import java.util.List;
-
+/**
+ * Data object for authenticate result by {@link AuthChainFilter}
+ */
 public class AuthChainOneFilterResult {
 
     // true - if processing must be interrupted.
@@ -17,14 +16,14 @@ public class AuthChainOneFilterResult {
     private boolean isSuccessProcessed;
 
     // result of processing by filter
-    private AuthenticateResponse authenticateResponse = new AuthenticateResponse();
+    private AuthenticateResult authenticateResult = new AuthenticateResult();
 
-    public AuthenticateResponse getAuthenticateResponse() {
-        return authenticateResponse;
+    public AuthenticateResult getAuthenticateResult() {
+        return authenticateResult;
     }
 
-    public void setAuthenticateResponse(AuthenticateResponse authenticateResponse) {
-        this.authenticateResponse = authenticateResponse;
+    public void setAuthenticateResult(AuthenticateResult authenticateResult) {
+        this.authenticateResult = authenticateResult;
     }
 
     public boolean isSuccessProcessed() {

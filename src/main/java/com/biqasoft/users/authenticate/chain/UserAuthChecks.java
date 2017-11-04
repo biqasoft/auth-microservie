@@ -6,6 +6,7 @@ import com.biqasoft.users.useraccount.UserAccount;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -23,27 +24,13 @@ public class UserAuthChecks {
 
     private static final Logger logger = LoggerFactory.getLogger(UserAuthChecks.class);
 
-    /**
-     * This function check if 2FA token is valid for provided user
-     *
-     * @param userAccount user
-     * @param code2FA     provided by user token
-     * @return true if 2FA code is valid. false if token is wrong
-     */
-    public boolean isTwoStepCodeValidForUser(UserAccount userAccount, @NotNull String code2FA) {
-        String currentValidCode;
-        try {
-            if (StringUtils.isEmpty(userAccount.getTwoStepCode())) {
-                logger.error("Empty 2FA auth code for user {}", userAccount.getUsername());
-                return false;
-            }
+    private final Boolean enableRootSystemUser;
+    private final String passwordRootSystemUser;
 
-            currentValidCode = TimeBasedOneTimePasswordUtil.generateCurrentNumber(userAccount.getTwoStepCode());
-        } catch (GeneralSecurityException e) {
-            logger.error("Error creating 2FA auth code", e);
-            return false;
-        }
-        return currentValidCode.equals(code2FA);
+    public UserAuthChecks( @Value("${biqa.security.global.root.enable:false}") Boolean enableRootSystemUser,
+                           @Value("${biqa.security.global.root.password:NO_PASSWORD}") String passwordRootSystemUser) {
+        this.enableRootSystemUser = enableRootSystemUser;
+        this.passwordRootSystemUser = passwordRootSystemUser;
     }
 
     /**

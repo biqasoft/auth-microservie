@@ -1,9 +1,8 @@
 package com.biqasoft.users.grpc;
 
-import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.RequestAuthenticateService;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
-import com.biqasoft.users.authenticate.dto.AuthenticateResponse;
+import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
@@ -37,12 +36,12 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
         UsersGet.UserAuthenticateResponse.Builder builder = UsersGet.UserAuthenticateResponse.newBuilder();
 
         try {
-            AuthenticateResponse authenticateResponse = authenticateService.authenticateResponse(authenticateRequest);
-            builder.setAuthenticated(authenticateResponse.getAuthenticated());
+            AuthenticateResult authenticateResult = authenticateService.authenticateRequest(authenticateRequest);
+            builder.setAuthenticated(authenticateResult.getAuthenticated());
 
-            if (authenticateResponse.getAuths() != null && authenticateResponse.getUserAccount() != null) {
-                builder.addAllAuths(authenticateResponse.getAuths());
-                builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(UserAccountMapper.transform(authenticateResponse.getUserAccount())));
+            if (authenticateResult.getAuths() != null && authenticateResult.getUserAccount() != null) {
+                builder.addAllAuths(authenticateResult.getAuths());
+                builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(authenticateResult.getUserAccount()));
             }
         } catch (BiqaAuthenticationLocalizedException e) {
             builder.setError(e.getErrorResource().getCode());

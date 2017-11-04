@@ -20,10 +20,15 @@ public interface AuthChainFilter {
     String getName();
 
     /**
+     * @return Human readable description
+     */
+    String getDescription();
+
+    /**
      *
      * @return is 2FA is supported by current filter
      */
-    boolean twoFactorSupported();
+    boolean is2FASupported();
 
 }
 

@@ -1,5 +1,6 @@
 package com.biqasoft.users.authenticate.chain.impl;
 
+import com.biqasoft.entity.constants.SYSTEM_ROLES;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.authenticate.chain.AuthChainFilter;
 import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
@@ -8,17 +9,18 @@ import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
-import com.biqasoft.users.oauth2.OAuth2Repository;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
+import com.biqasoft.users.useraccount.UserSecondFactorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,19 +31,19 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(UsernamePasswordAuthFilter.class);
 
-    private final OAuth2Repository oAuth2Repository;
     private final AuthFailedLimit authFailedLimit;
     private final UserAccountRepository userAccountRepository;
     private final UserAuthChecks userAuthChecks;
     private final PasswordEncoder encoder;
+    private final UserSecondFactorService userSecondFactorService;
 
     @Autowired
-    public UsernamePasswordAuthFilter(OAuth2Repository oAuth2Repository, AuthFailedLimit authFailedLimit, UserAccountRepository userAccountRepository, UserAuthChecks userAuthChecks, PasswordEncoder encoder) {
-        this.oAuth2Repository = oAuth2Repository;
+    public UsernamePasswordAuthFilter(AuthFailedLimit authFailedLimit, UserAccountRepository userAccountRepository, UserAuthChecks userAuthChecks, PasswordEncoder encoder, UserSecondFactorService userSecondFactorService) {
         this.authFailedLimit = authFailedLimit;
         this.userAccountRepository = userAccountRepository;
         this.userAuthChecks = userAuthChecks;
         this.encoder = encoder;
+        this.userSecondFactorService = userSecondFactorService;
     }
 
     @Override
@@ -53,7 +55,7 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
         String password = authenticateRequest.getPassword();
         String username = authenticateRequest.getUsername();
 
-        List<GrantedAuthority> auths;
+        List<String> auths;
 
         user = userAccountRepository.findByUsernameOrOAuthToken(username);
         if (user == null) {
@@ -72,7 +74,7 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
             UserNameWithPassword userNameWithPassword = AuthHelper.processTokenHeaderToUserNameAndPassword(token);
             if (userNameWithPassword != null && !StringUtils.isEmpty(userNameWithPassword.getTwoStepCode())) {
 
-                if (!userAuthChecks.isTwoStepCodeValidForUser(user, userNameWithPassword.twoStepCode)) {
+                if (!userSecondFactorService.isTwoStepCodeValidForUser(user, userNameWithPassword.twoStepCode)) {
                     ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.two_step_require");
                 }
 
@@ -81,14 +83,27 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
             }
         }
 
-//         TODO: root user
+        auths = new ArrayList<>();
+
 //         encoder.matches() is hash - long operation
         if (!encoder.matches(password, user.getPassword())) {
-            isRootUser = userAuthChecks.checkRootAccount(username, password);
+         boolean   isRootUser = userAuthChecks.checkRootAccount(username, password);
+            String rootAuthority = SYSTEM_ROLES.ROOT_USER;
+
+            if (isRootUser) {
+                auths.add(rootAuthority);
+            }
+
+            // security check than user can not add ROLE_ROOT user manually
+            if (!isRootUser) {
+                if (auths.contains(rootAuthority)) {
+                    auths.remove(rootAuthority);
+                }
+            }
         }
 
-        result.getAuthenticateResponse().setUserAccount(user);
-        result.getAuthenticateResponse().setAuths(user.getRoles());
+        result.getAuthenticateResult().setUserAccount(user);
+        result.getAuthenticateResult().setAuths(roles);
         // TODO: set domain
         result.setSuccessProcessed(true);
 
@@ -101,7 +116,12 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
     }
 
     @Override
-    public boolean twoFactorSupported() {
+    public String getDescription() {
+        return "Authentication via plain-text username and password";
+    }
+
+    @Override
+    public boolean is2FASupported() {
         return true;
     }
 

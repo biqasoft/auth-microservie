@@ -108,8 +108,8 @@ public class GlobalUserController {
     }
 
     @PutMapping
-    public com.biqasoft.entity.core.useraccount.UserAccount updateUserAccount(@RequestBody UserAccount userPosted) throws Exception {
-        return UserAccountMapper.transform(userAccountRepository.unsafeUpdateUserAccount(userPosted));
+    public com.biqasoft.entity.core.useraccount.UserAccount updateUserAccount(@RequestBody com.biqasoft.entity.core.useraccount.UserAccount userPosted) {
+        return UserAccountMapper.transform(userAccountRepository.unsafeUpdateUserAccount(UserAccountMapper.transform(userPosted)));
     }
 
     @DeleteMapping(value = "id/{id}")
