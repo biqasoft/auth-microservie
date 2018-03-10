@@ -12,8 +12,10 @@ import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Nikita Bakaev
@@ -25,7 +27,6 @@ public class UserAuthenticateController {
 
     private final RequestAuthenticateService requestAuthenticateService;
 
-    @Autowired
     public UserAuthenticateController(RequestAuthenticateService requestAuthenticateService) {
         this.requestAuthenticateService = requestAuthenticateService;
     }

@@ -15,9 +15,16 @@
     <name>com.biqasoft.auth-microservice</name>
     <properties>
         <hazelcast.version>3.9.3</hazelcast.version>
+        <grpc-netty.version>1.1.2</grpc-netty.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.j256.two-factor-auth/two-factor-auth -->
         <dependency>
@@ -108,25 +115,21 @@
         </dependency>
 
         <!-- grpc -->
-
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
-            <version>1.1.2</version>
+            <version>${grpc-netty.version}</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>1.1.2</version>
+            <version>${grpc-netty.version}</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
-            <version>1.1.2</version>
+            <version>${grpc-netty.version}</version>
         </dependency>
-
-
-
 
     </dependencies>
 
@@ -135,7 +138,7 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>1.4.1.Final</version>
+                <version>1.5.0.Final</version>
             </extension>
         </extensions>
         <plugins>

@@ -16,25 +16,8 @@ public class BiqaAuthenticationLocalizedException extends AuthenticationExceptio
 
     private ErrorResource errorResource;
 
-    public BiqaAuthenticationLocalizedException(ErrorResource errorResource) {
-        super(errorResource.getIdErrorMessage(), null);
-        this.errorResource = errorResource;
-    }
-
-    public BiqaAuthenticationLocalizedException() {
-        super("NO msg");
-    }
-
-    public BiqaAuthenticationLocalizedException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     public BiqaAuthenticationLocalizedException(String message) {
         super(message);
-    }
-
-    public ErrorResource getErrorResource() {
-        return errorResource;
     }
 
 }

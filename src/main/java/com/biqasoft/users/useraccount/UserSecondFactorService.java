@@ -35,7 +35,7 @@ public class UserSecondFactorService {
      * @param code - if 2FA is enabled and user want to disable it
      */
     public void tryToChange2FactorMode(boolean newMode, String code) {
-        UserAccount byUserId = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId());
+        UserAccount byUserId = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId()).block();
 
         if (byUserId.isTwoStepActivated() != newMode) {
             if (newMode) {
@@ -97,7 +97,7 @@ public class UserSecondFactorService {
         String imageUrl = TimeBasedOneTimePasswordUtil.qrImageUrl(currentUserObj.getUsername(), base32Secret);
 
         // we can use the code here and compare it against user input
-        UserAccount byUserId = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId());
+        UserAccount byUserId = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId()).block();
         byUserId.setTwoStepCode(base32Secret);
         byUserId.setTwoStepActivated(false);
         userAccountRepository.unsafeUpdateUserAccount(byUserId);

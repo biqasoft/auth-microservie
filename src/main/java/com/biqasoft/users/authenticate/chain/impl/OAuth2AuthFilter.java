@@ -47,7 +47,7 @@ public class OAuth2AuthFilter implements AuthChainFilter {
         // if username start with following characters - this is oauth auto
         // generated username
         if (username.startsWith(SYSTEM_CONSTS.AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
-            user = oAuth2Repository.findUserByOAuth2TokenIDAndUserNameToken(password, username);
+            user = oAuth2Repository.findUserByOAuth2TokenIDAndUserNameToken(password, username).block();
             if (user == null) {
                 authFailedLimit.processFailedAuth(authenticateRequest);
                 ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.oauth2.invalid_token");
@@ -86,6 +86,7 @@ public class OAuth2AuthFilter implements AuthChainFilter {
 
             result.getAuthenticateResult().setUserAccount(user);
             result.getAuthenticateResult().setAuths(auths);
+            result.getAuthenticateResult().setAuthenticated(true);
             result.setSuccessProcessed(true);
         }
 

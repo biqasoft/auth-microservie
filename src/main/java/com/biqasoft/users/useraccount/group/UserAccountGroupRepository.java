@@ -73,7 +73,8 @@ public class UserAccountGroupRepository {
     private void processGroupOperation(UserAccountGroup userAccountGroup) {
         checkRolesPermission(userAccountGroup);
 
-        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain();
+        // TODO: test > 256 elements
+        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain().toStream().collect(Collectors.toList());
 
         // delete this group from all users which have this group earlier
         for (UserAccount userAccount : userAccounts) {
@@ -108,7 +109,7 @@ public class UserAccountGroupRepository {
     private void processDeleteGroupOperation(UserAccountGroup userAccountGroup) {
         checkRolesPermission(userAccountGroup);
 
-        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain();
+        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain().toStream().collect(Collectors.toList());
 
         // delete this group from all users which have this group earlier
         for (UserAccount userAccount : userAccounts) {

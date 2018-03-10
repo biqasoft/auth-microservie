@@ -82,7 +82,7 @@ public class PasswordResetRepository {
     }
 
     public void resetUserPasswordBySecretToken(ResetPasswordTokenDTO resetPasswordTokenDao) {
-        UserAccount userAccount = userAccountRepository.findByUsernameOrOAuthToken(resetPasswordTokenDao.getEmail());
+        UserAccount userAccount = userAccountRepository.findByUsernameOrOAuthToken(resetPasswordTokenDao.getEmail()).block();
         userAccount.setPassword(encoder.encode(resetPasswordTokenDao.getPassword()));
         ops.save(userAccount);
         ops.remove(resetPasswordTokenDao);
@@ -107,7 +107,7 @@ public class PasswordResetRepository {
         passwordEncodeRequest.setPassword(password);
         userPosted.setPassword(encoder.encode(passwordEncodeRequest.getPassword()));
 
-        UserAccount oldUserAccount = userAccountRepository.findByUserId(userPosted.getId());
+        UserAccount oldUserAccount = userAccountRepository.findByUserId(userPosted.getId()).block();
 
         if (!currentUser.getDomain().getDomain().equals(oldUserAccount.getDomain())) {
             ThrowExceptionHelper.throwExceptionInvalidRequest("ACCESS DENY");

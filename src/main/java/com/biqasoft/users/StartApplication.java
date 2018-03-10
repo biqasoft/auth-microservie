@@ -9,25 +9,23 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoReactiveDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.context.annotation.*;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.context.request.RequestContextListener;
 
 @SpringBootApplication
 @ComponentScan(value = "com.biqasoft", excludeFilters = {@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.biqasoft.entity")})
-@Configuration
 @EnableAspectJAutoProxy
-@EnableAutoConfiguration(exclude = {MongoDataAutoConfiguration.class, MongoAutoConfiguration.class, SecurityAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = {MongoDataAutoConfiguration.class, WebMvcAutoConfiguration.class, SecurityAutoConfiguration.class, MongoReactiveDataAutoConfiguration.class
+//        ,        HttpHandlerAutoConfiguration.class}
+})
 @EnableMicroserviceCommunicator
 @EnableScheduling
 public class StartApplication {
-
-    @Bean
-    public RequestContextListener requestContextListener() {
-        return new RequestContextListener();
-    }
 
     public static void main(String[] args) {
         SpringApplication.run(StartApplication.class, args);

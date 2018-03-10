@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Api(value = "History objects")
@@ -37,7 +36,7 @@ public class DiffController {
     @Secured(value = {SystemRoles.HISTORY_ROOT, SystemRoles.ALLOW_ALL_DOMAIN_BASED, SystemRoles.ROLE_ADMIN})
     @ApiOperation(value = "get history info of customer changes just as string formatted")
     @RequestMapping(value = "class/{className}/id/{id}", method = RequestMethod.GET)
-    public List<ChangeObjectDTO> getChanges(HttpServletResponse response, @PathVariable("id") String id, @PathVariable("className") String className) {
+    public List<ChangeObjectDTO> getChanges(@PathVariable("id") String id, @PathVariable("className") String className) {
         return ObjectsAuditHistoryService.transformJaversChangesToDTO(objectsAuditHistoryService.getChangesByObject(com.biqasoft.users.useraccount.UserAccount.class, id, "main"));
     }
 

@@ -2,31 +2,31 @@ package com.biqasoft.users.oauth2.application;
 
 import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.users.config.SystemSettings;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
- *         Date: 7/22/2016
  *         All Rights Reserved
  */
 public interface OAuth2ApplicationRepository {
-    OAuth2Application createNewApplication(OAuth2Application application);
 
-    OAuth2Application findOauthApplicationById(String id);
+    Mono<OAuth2Application> createNewApplication(OAuth2Application application);
 
-    void deleteOauthApplicationById(String id);
+    Mono<OAuth2Application> findOauthApplicationById(String id);
 
-    List<OAuth2Application> findAllPublicOauthApplications();
+    Mono<Boolean> deleteOauthApplicationById(String id);
 
-    List<OAuth2Application> findAllOauthApplicationsInDomain();
+    Flux<OAuth2Application> findAllPublicOauthApplications();
 
-    OAuth2Application updateApplication(OAuth2Application application);
+    Flux<OAuth2Application> findAllOauthApplicationsInDomain();
+
+    Mono<OAuth2Application> updateApplication(OAuth2Application application);
 
     SystemSettings getSystemSettings();
 
     OAuth2Application getSystemOAuthApplication();
 
-    SampleDataResponse getSecretCodeForOAuthApplication(OAuth2Application application);
+    Mono<SampleDataResponse> getSecretCodeForOAuthApplication(OAuth2Application application);
 
 }

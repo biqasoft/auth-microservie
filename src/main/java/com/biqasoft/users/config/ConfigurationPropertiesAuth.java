@@ -5,13 +5,16 @@ import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@Data
-@ConfigurationProperties
 public class ConfigurationPropertiesAuth {
 
-    private boolean serverGrpcEnabled = true;
-    private int serverGrpcPort;
+    @Data
+    @ConfigurationProperties(prefix = "server.grpc")
+    @Configuration
+    public static class GrpcProps {
 
-    private boolean AuthSecurityGlobalRootEnable = false;
+        private boolean enabled = true;
+        private int port;
+
+    }
 
 }

@@ -6,10 +6,9 @@ import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
-import io.grpc.stub.StreamObserver;
+import io.grpc.stub.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 /**
  * Created by ya on 3/2/2017.
  */
@@ -44,7 +43,7 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
                 builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(authenticateResult.getUserAccount()));
             }
         } catch (BiqaAuthenticationLocalizedException e) {
-            builder.setError(e.getErrorResource().getCode());
+            builder.setError(e.getMessage());
             builder.setAuthenticated(false);
         }
         responseObserver.onNext(builder.build());
@@ -69,7 +68,7 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
 
     private UserOuterClass.User processUser(UsersGet.UserGetRequest request) {
         String id = request.getId();
-        UserAccount internalUser = userAccountRepository.unsafeFindUserById(id);
+        UserAccount internalUser = userAccountRepository.unsafeFindUserById(id).block();
 
         if (internalUser != null) {
             return UsersToGrpcMapper.mapMsModelToGrpc(internalUser);

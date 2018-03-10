@@ -8,9 +8,8 @@ import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.tomcat.util.codec.binary.Base64;
+import org.apache.commons.codec.binary.Base64;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Objects;
 

@@ -11,7 +11,6 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.Domain;
-import com.biqasoft.users.auth.CurrentUserContextProviderImpl;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.domain.DomainRepository;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
@@ -22,8 +21,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * {@link com.biqasoft.microservice.common.MicroserviceUsersRepository}
@@ -49,20 +48,22 @@ public class GlobalUserController {
     }
 
     @GetMapping
-    public List<com.biqasoft.entity.core.useraccount.UserAccount> findUnsafeFindAllUsers() {
-        return UserAccountMapper.transform(userAccountRepository.unsafeFindAllUsers());
+    public Flux<com.biqasoft.entity.core.useraccount.UserAccount> findUnsafeFindAllUsers() {
+        return userAccountRepository.unsafeFindAllUsers().map(UserAccountMapper::mapInternalToDto);
     }
 
     @GetMapping(value = "id/{id}")
-    public com.biqasoft.entity.core.useraccount.UserAccount findUserById(@PathVariable("id") String id) {
-        return UserAccountMapper.transform(userAccountRepository.unsafeFindUserById(id));
+    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> findUserById(@PathVariable("id") String id) {
+        return userAccountRepository.unsafeFindUserById(id).map(UserAccountMapper::mapInternalToDto);
     }
 
     @GetMapping(value = "search/domain/id/{id}")
     public Domain findDomainForUserId(@PathVariable("id") String id) {
-        UserAccount byUserId = userAccountRepository.findByUserId(id);
-        String domainForInternalUser = CurrentUserContextProviderImpl.getDomainForInternalUser(byUserId);
-        return domainRepository.findDomainById(domainForInternalUser);
+        // TODO:
+        UserAccount byUserId = userAccountRepository.findByUserId(id).block();
+//        String domainForInternalUser = CurrentUserContextProviderImpl.getDomainForInternalUser(byUserId);
+//        return domainRepository.findDomainById(domainForInternalUser);
+        return null;
     }
 
     @ApiOperation(value = "register new user in new domain with admin role")
@@ -88,12 +89,12 @@ public class GlobalUserController {
         user.setRoles(Lists.newArrayList(SystemRoles.ROLE_ADMIN, SystemRoles.ALLOW_ALL_DOMAIN_BASED));
         user.setDomain(domain.getDomain());
 
-        CreatedUser createdUserInternal = userAccountRepository.registerNewUser(user);
+        CreatedUser createdUserInternal = userAccountRepository.registerNewUser(user).block();
 
         CreatedUserDto response = new CreatedUserDto();
         response.setDomain(createdUserInternal.getDomain());
         response.setPassword(createdUserInternal.getPassword());
-        response.setUserAccount(UserAccountMapper.transform(createdUserInternal.getUserAccount()));
+        response.setUserAccount(UserAccountMapper.mapInternalToDto(createdUserInternal.getUserAccount()));
 
         if (userAccountAddRequest.isSendWelcomeEmail()) {
             emailPrepareAndSendService.sendWelcomeEmailWhenCreateNewDomain(createdUserInternal.getUserAccount(), createdUserInternal.getPassword());
@@ -103,13 +104,13 @@ public class GlobalUserController {
 
     @ApiOperation(value = "find user by username or oauth2 token ")
     @PostMapping(value = "find/username_or_oauth2_token")
-    public com.biqasoft.entity.core.useraccount.UserAccount create(@RequestBody UserAccountGet userAccountGet) {
-        return UserAccountMapper.transform(userAccountRepository.findByUsernameOrOAuthToken(userAccountGet.username));
+    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> create(@RequestBody UserAccountGet userAccountGet) {
+        return userAccountRepository.findByUsernameOrOAuthToken(userAccountGet.username).map(UserAccountMapper::mapInternalToDto);
     }
 
     @PutMapping
-    public com.biqasoft.entity.core.useraccount.UserAccount updateUserAccount(@RequestBody com.biqasoft.entity.core.useraccount.UserAccount userPosted) {
-        return UserAccountMapper.transform(userAccountRepository.unsafeUpdateUserAccount(UserAccountMapper.transform(userPosted)));
+    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> updateUserAccount(@RequestBody com.biqasoft.entity.core.useraccount.UserAccount userPosted) {
+        return userAccountRepository.unsafeUpdateUserAccount(UserAccountMapper.mapDtoToInternal(userPosted)).map(UserAccountMapper::mapInternalToDto);
     }
 
     @DeleteMapping(value = "id/{id}")

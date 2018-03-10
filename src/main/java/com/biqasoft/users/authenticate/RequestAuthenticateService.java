@@ -11,14 +11,22 @@ import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
+import com.biqasoft.users.config.AuthServerInternalAuth;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
 import com.biqasoft.users.domain.DomainRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -29,7 +37,7 @@ import java.util.List;
  *         All Rights Reserved
  */
 @Service
-public class RequestAuthenticateService {
+public class RequestAuthenticateService implements ServerSecurityContextRepository, ReactiveAuthenticationManager {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestAuthenticateService.class);
     private final DomainRepository domainRepository;
@@ -81,6 +89,9 @@ public class RequestAuthenticateService {
 
         for (AuthChainFilter authChainFilter : authChainFilters) {
             AuthChainOneFilterResult process = authChainFilter.process(authenticateRequest);
+            if (process == null) {
+                continue;
+            }
             if (process.isForceReturn()){
                 return process.getAuthenticateResult();
             }
@@ -96,6 +107,7 @@ public class RequestAuthenticateService {
         // todo
         return null;
 
+//         TODO:
 //        if (!StringUtils.hasText(password)) {
 //            logger.info("Username {}: no password provided", username);
 //            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.empty_password");
@@ -133,4 +145,32 @@ public class RequestAuthenticateService {
 //        return response;
     }
 
+    @Override
+    public Mono<Void> save(ServerWebExchange serverWebExchange, SecurityContext securityContext) {
+        return null;
+    }
+
+    //  Authenticate incoming user
+    @Override
+    public Mono<SecurityContext> load(ServerWebExchange serverWebExchange) {
+
+        List<String> authorization = serverWebExchange.getRequest().getHeaders().get("Authorization");
+        if (authorization != null && authorization.size() == 1)  {
+            AuthenticateRequest authenticateRequest = new AuthenticateRequest();
+            authenticateRequest.setToken(authorization.get(0));
+            AuthenticateResult authenticateResult = this.authenticateRequest(authenticateRequest);
+            if (authenticateResult == null) {
+                return Mono.empty();
+            }
+
+            AuthServerInternalAuth authentication = new AuthServerInternalAuth(authenticateResult);
+            return Mono.just(new SecurityContextImpl(authentication));
+        }
+        return Mono.empty();
+    }
+
+    @Override
+    public Mono<Authentication> authenticate(Authentication authentication) {
+        return Mono.just(authentication);
+    }
 }

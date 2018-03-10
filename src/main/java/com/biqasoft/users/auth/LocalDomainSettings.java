@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
+ * TODO: refactor; do not implement MicroserviceDomainSettings
  * Created by Nikita on 22.08.2016.
  */
 @Service

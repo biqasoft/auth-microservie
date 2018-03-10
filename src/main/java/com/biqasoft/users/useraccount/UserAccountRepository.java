@@ -2,8 +2,8 @@ package com.biqasoft.users.useraccount;
 
 import com.biqasoft.entity.core.useraccount.PersonalSettings;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -12,11 +12,11 @@ import java.util.List;
  */
 public interface UserAccountRepository {
 
-    UserAccount findUserByOAuth2UserNameToken(String customUsername);
+    Mono<UserAccount> findUserByOAuth2UserNameToken(String customUsername);
 
-    CreatedUser registerNewUser(UserAccount userAccount) throws Exception;
+    Mono<CreatedUser> registerNewUser(UserAccount userAccount) throws Exception;
 
-    CreatedUser createUserAccountInDomain(UserAccount userAccount, String password) throws Exception;
+    Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password) throws Exception;
 
         /**
          * Find user account by id only in current domain
@@ -24,7 +24,7 @@ public interface UserAccountRepository {
          * @param user
          * @return
          */
-    UserAccount findByUserId(String user);
+    Mono<UserAccount> findByUserId(String user);
 
     /**
      * Find user account by id
@@ -32,7 +32,7 @@ public interface UserAccountRepository {
      * @param user
      * @return
      */
-    UserAccount unsafeFindUserById(String user);
+    Mono<UserAccount> unsafeFindUserById(String user);
 
     /**
      * Find user by username
@@ -42,7 +42,7 @@ public interface UserAccountRepository {
      * @param userName username or token
      * @return user account with this credentials
      */
-    UserAccount findByUsernameOrOAuthToken(String userName);
+    Mono<UserAccount> findByUsernameOrOAuthToken(String userName);
 
     /**
      * Private API
@@ -52,7 +52,7 @@ public interface UserAccountRepository {
      * @param newObject
      * @return
      */
-    UserAccount unsafeUpdateUserAccount(UserAccount newObject);
+    Mono<UserAccount> unsafeUpdateUserAccount(UserAccount newObject);
 
     /**
      * Update user accounts which are in the same domain
@@ -62,12 +62,12 @@ public interface UserAccountRepository {
      * @return
      * @throws Exception
      */
-    UserAccount updateUserAccountForCurrentDomain(UserAccount newObject) throws Exception;
+    Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount newObject) throws Exception;
 
     /**
      * Set current user as online
      */
-    void setCurrentUserOnline();
+    Mono<Void> setCurrentUserOnline();
 
     /**
      * Update personal settings (this is serialised JSON by browser which he stores settings with UI etc...)
@@ -75,16 +75,16 @@ public interface UserAccountRepository {
      *
      * @param personalSettings
      */
-    void setCurrentUserPersonalSettings(PersonalSettings personalSettings);
+    Mono<Void> setCurrentUserPersonalSettings(PersonalSettings personalSettings);
 
     /**
      * Find all users in current domain
      *
      * @return
      */
-    List<UserAccount> findAllUsersInDomain();
+    Flux<UserAccount> findAllUsersInDomain();
 
-    List<UserAccount> unsafeFindAllUsers();
+    Flux<UserAccount> unsafeFindAllUsers();
 
     /**
      * FOR INTERNAL USAGE ONLY
@@ -92,7 +92,7 @@ public interface UserAccountRepository {
      *
      * @param id
      */
-    void deleteUserById(String id);
+    Mono<Void> deleteUserById(String id);
 
-    List<UserAccount> fullTextSearch(UserSearchRequest searchRequest);
+    Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest);
 }

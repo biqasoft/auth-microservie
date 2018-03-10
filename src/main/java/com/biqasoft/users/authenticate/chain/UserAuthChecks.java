@@ -3,7 +3,6 @@ package com.biqasoft.users.authenticate.chain;
 import com.biqasoft.entity.core.Domain;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.biqasoft.users.useraccount.UserAccount;
-import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,8 +10,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.validation.constraints.NotNull;
-import java.security.GeneralSecurityException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +24,7 @@ public class UserAuthChecks {
     private final Boolean enableRootSystemUser;
     private final String passwordRootSystemUser;
 
-    public UserAuthChecks( @Value("${biqa.security.global.root.enable:false}") Boolean enableRootSystemUser,
+    public UserAuthChecks( @Value("${biqa.security.global.root.enable:false}") boolean enableRootSystemUser,
                            @Value("${biqa.security.global.root.password:NO_PASSWORD}") String passwordRootSystemUser) {
         this.enableRootSystemUser = enableRootSystemUser;
         this.passwordRootSystemUser = passwordRootSystemUser;

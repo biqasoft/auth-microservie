@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
  */
 public class UserAccountMapper {
 
-    public static List<UserAccount> transform (List<com.biqasoft.users.useraccount.UserAccount> internalUser){
-        return internalUser.stream().map(UserAccountMapper::transform).collect(Collectors.toList());
+    public static List<UserAccount> mapInternalToDto(List<com.biqasoft.users.useraccount.UserAccount> internalUser){
+        return internalUser.stream().map(UserAccountMapper::mapInternalToDto).collect(Collectors.toList());
     }
 
     /**
@@ -19,7 +19,7 @@ public class UserAccountMapper {
      * @param msModel internal model
      * @return dto
      */
-    public static UserAccount transform (com.biqasoft.users.useraccount.UserAccount msModel){
+    public static UserAccount mapInternalToDto(com.biqasoft.users.useraccount.UserAccount msModel){
         UserAccount account = new UserAccount();
         account.setId(msModel.getId());
 
@@ -58,7 +58,7 @@ public class UserAccountMapper {
      * @param dtoModel dto
      * @return internal model
      */
-    public static com.biqasoft.users.useraccount.UserAccount transform (UserAccount dtoModel){
+    public static com.biqasoft.users.useraccount.UserAccount mapDtoToInternal(UserAccount dtoModel){
         com.biqasoft.users.useraccount.UserAccount msModel = new com.biqasoft.users.useraccount.UserAccount();
         msModel.setId(dtoModel.getId());
 

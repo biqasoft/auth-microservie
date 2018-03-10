@@ -11,14 +11,15 @@ import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
-import com.biqasoft.microservice.database.MainDatabase;
+import com.biqasoft.microservice.database.MainReactiveDatabase;
 import com.biqasoft.users.config.SystemSettings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -27,21 +28,20 @@ import java.util.List;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
- *         Date: 7/9/2016
- *         All Rights Reserved
+ * Date: 7/9/2016
+ * All Rights Reserved
  */
 @Service
 public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationRepository {
 
     private final CurrentUser currentUser;
-    private final MongoOperations ops;
+    private final ReactiveMongoOperations ops;
 
     private SystemSettings systemSettings = null;
     private OAuth2Application systemOAuthApplication = null;
     private final RandomString oauthTokenRandomString;
 
-    @Autowired
-    public OAuth2ApplicationRepositoryImpl(CurrentUser currentUser, @MainDatabase MongoOperations ops,
+    public OAuth2ApplicationRepositoryImpl(CurrentUser currentUser, @MainReactiveDatabase ReactiveMongoOperations ops,
                                            @Value("${biqa.auth.oauth.secret.code.length}") Integer oauthPasswordLength) {
         this.currentUser = currentUser;
         this.ops = ops;
@@ -53,11 +53,11 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
         Criteria criteria = new Criteria();
         Query query = new Query(criteria);
 
-        SystemSettings systemSettings = ops.findOne(query, SystemSettings.class);
+        SystemSettings systemSettings = ops.findOne(query, SystemSettings.class).block();
         if (systemSettings == null || systemSettings.getSystemOAuthApplicationId() == null) {
             createNewSystemOAuthApplication();
         } else {
-            OAuth2Application application = findOauthApplicationById(systemSettings.getSystemOAuthApplicationId());
+            OAuth2Application application = findOauthApplicationById(systemSettings.getSystemOAuthApplicationId()).block();
 
             if (application == null || application.getId() == null) {
                 createNewSystemOAuthApplication();
@@ -114,71 +114,72 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
 
     @Override
     @BiqaAddObject
-    public OAuth2Application createNewApplication(OAuth2Application application) {
+    public Mono<OAuth2Application> createNewApplication(OAuth2Application application) {
 
         // set app secret code on app creation
         String accessCode = oauthTokenRandomString.nextString();
         application.setSecretCode(accessCode);
 
-        ops.insert(application);
-        return application;
+        return ops.insert(application).map(x -> {
+            return application;
+        });
     }
 
     @Override
-    public OAuth2Application findOauthApplicationById(String id) {
+    public Mono<OAuth2Application> findOauthApplicationById(String id) {
         return ops.findOne(Query.query(Criteria.where("id").is(id)), OAuth2Application.class);
     }
 
     @Override
-    public void deleteOauthApplicationById(String id) {
-        OAuth2Application application = ops.findOne(Query.query(Criteria.where("id").is(id)), OAuth2Application.class);
-
-        if (!application.getCreatedInfo().getCreatedById().equals(currentUser.getCurrentUser().getId())) {
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
-        }
-
-        ops.remove(application);
+    public Mono<Boolean> deleteOauthApplicationById(String id) {
+        return ops.findOne(Query.query(Criteria.where("id").is(id)), OAuth2Application.class).flatMap(application -> {
+            if (!application.getCreatedInfo().getCreatedById().equals(currentUser.getCurrentUser().getId())) {
+                ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
+            }
+            return ops.remove(application).map(res -> res.getDeletedCount() > 0);
+        });
     }
 
     @Override
-    public List<OAuth2Application> findAllPublicOauthApplications() {
+    public Flux<OAuth2Application> findAllPublicOauthApplications() {
         return ops.find(Query.query(Criteria.where("publicApp").is(true)), OAuth2Application.class);
     }
 
     @Override
-    public List<OAuth2Application> findAllOauthApplicationsInDomain() {
+    public Flux<OAuth2Application> findAllOauthApplicationsInDomain() {
         return ops.find(Query.query(Criteria.where("domain").is(currentUser.getDomain().getDomain())), OAuth2Application.class);
     }
 
     @Override
-    public OAuth2Application updateApplication(OAuth2Application application) {
-        OAuth2Application oAuth2Application = findOauthApplicationById(application.getId());
-        if (oAuth2Application == null) {
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.no_such_application");
-        }
+    public Mono<OAuth2Application> updateApplication(OAuth2Application application) {
+        return findOauthApplicationById(application.getId()).flatMap(oAuth2Application -> {
 
-        if (oAuth2Application.getId().equals(getSystemOAuthApplication().getId())){
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
-        }
+            if (oAuth2Application == null) {
+                ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.no_such_application");
+            }
 
-        if (!oAuth2Application.getCreatedInfo().getCreatedById().equals(currentUser.getCurrentUser().getId())) {
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
-        }
+            if (oAuth2Application.getId().equals(getSystemOAuthApplication().getId())) {
+                ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
+            }
 
-        oAuth2Application.setRedirect_uri(application.getRedirect_uri());
-        oAuth2Application.setName(application.getName());
-        oAuth2Application.setDescription(application.getDescription());
-        oAuth2Application.setRoles(application.getRoles());
-        oAuth2Application.setAvatarUrl(application.getAvatarUrl());
-        oAuth2Application.setPublicApp(application.isPublicApp());
+            if (!oAuth2Application.getCreatedInfo().getCreatedById().equals(currentUser.getCurrentUser().getId())) {
+                ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
+            }
 
-        ops.save(oAuth2Application);
-        return application;
+            oAuth2Application.setRedirect_uri(application.getRedirect_uri());
+            oAuth2Application.setName(application.getName());
+            oAuth2Application.setDescription(application.getDescription());
+            oAuth2Application.setRoles(application.getRoles());
+            oAuth2Application.setAvatarUrl(application.getAvatarUrl());
+            oAuth2Application.setPublicApp(application.isPublicApp());
+
+            return ops.save(oAuth2Application).map(l -> application);
+        });
     }
 
 
     @Override
-    public SampleDataResponse getSecretCodeForOAuthApplication(OAuth2Application application){
+    public Mono<SampleDataResponse> getSecretCodeForOAuthApplication(OAuth2Application application) {
         SampleDataResponse response = new SampleDataResponse();
 
         if (!application.getCreatedInfo().getCreatedById().equals(currentUser.getCurrentUser().getId())) {
@@ -186,7 +187,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
         }
 
         response.setData(application.getSecretCode());
-        return response;
+        return Mono.just(response);
     }
 
     @Override

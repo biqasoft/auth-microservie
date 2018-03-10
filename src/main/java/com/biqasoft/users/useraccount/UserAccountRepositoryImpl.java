@@ -11,15 +11,18 @@ import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.PersonalSettings;
 import com.biqasoft.entity.core.useraccount.UserAccountGroup;
 import com.biqasoft.microservice.database.MainDatabase;
+import com.biqasoft.microservice.database.MainReactiveDatabase;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import com.biqasoft.users.useraccount.group.UserAccountGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Date;
 import java.util.List;
@@ -28,12 +31,12 @@ import java.util.List;
 public class UserAccountRepositoryImpl implements UserAccountRepository {
 
     private final CurrentUser currentUser;
-    private final MongoOperations ops;
+    private final ReactiveMongoOperations ops;
     private final PasswordEncoder passwordEncoder;
     private final RandomString randomPassword;
 
     @Autowired
-    public UserAccountRepositoryImpl(@MainDatabase MongoOperations ops, CurrentUser currentUser, PasswordEncoder passwordEncoder,
+    public UserAccountRepositoryImpl(@MainReactiveDatabase ReactiveMongoOperations ops, CurrentUser currentUser, PasswordEncoder passwordEncoder,
                                      @Value("${biqa.auth.password.default.length}") Integer defaultPasswordLength) {
         this.ops = ops;
         this.currentUser = currentUser;
@@ -82,19 +85,19 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     }
 
     @Override
-    public CreatedUser registerNewUser(UserAccount userAccount) throws Exception {
+    public Mono<CreatedUser> registerNewUser(UserAccount userAccount) throws Exception {
         return create(userAccount, true);
     }
 
     @Override
     @BiqaAddObject
     @BiqaAuditObject
-    public CreatedUser createUserAccountInDomain(UserAccount userAccount, String password) throws Exception {
+    public Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password) throws Exception {
         userAccount.setPassword(password); //dirty hack
         return create(userAccount, false);
     }
 
-    private CreatedUser create(UserAccount userAccount, boolean anonymous) throws Exception {
+    private Mono<CreatedUser> create(UserAccount userAccount, boolean anonymous) throws Exception {
 
         if (anonymous) {
             checkSystemRolesPermission(userAccount);
@@ -123,28 +126,27 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
         userAccount.setStatus(UserAccount.UserAccountStatus.STATUS_APPROVED.name()); // or UserAccountStatus.STATUS_DISABLED
 
         userAccount.setCreatedInfo(new CreatedInfo(new Date()));
-        ops.insert(userAccount);
-
-        CreatedUser createdUser = new CreatedUser();
-        createdUser.setUserAccount(userAccount);
-        createdUser.setPassword(clearTextPassword);
-        createdUser.setDomain(userAccount.getDomain());
-
-        return createdUser;
+        return ops.insert(userAccount).map(x -> {
+            CreatedUser createdUser = new CreatedUser();
+            createdUser.setUserAccount(userAccount);
+            createdUser.setPassword(clearTextPassword);
+            createdUser.setDomain(userAccount.getDomain());
+            return createdUser;
+        });
     }
 
     @Override
-    public UserAccount findByUserId(String user) {
+    public Mono<UserAccount> findByUserId(String user) {
         return ops.findOne(Query.query(Criteria.where("id").is(user).and("domain").is(currentUser.getDomain().getDomain())), UserAccount.class);
     }
 
     @Override
-    public UserAccount unsafeFindUserById(String user) {
+    public Mono<UserAccount> unsafeFindUserById(String user) {
         return ops.findOne(Query.query(Criteria.where("id").is(user)), UserAccount.class);
     }
 
     @Override
-    public UserAccount findByUsernameOrOAuthToken(String userName) {
+    public Mono<UserAccount> findByUsernameOrOAuthToken(String userName) {
 
         // is this is oauth2 token
         if (userName.startsWith(SYSTEM_CONSTS.AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
@@ -155,66 +157,68 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     }
 
     @Override
-    public UserAccount findUserByOAuth2UserNameToken(String customUsername) {
+    public Mono<UserAccount> findUserByOAuth2UserNameToken(String customUsername) {
         return ops.findOne(Query.query(Criteria.where("oAuth2s.userName").is(customUsername)), UserAccount.class);
     }
 
     @Override
-    public UserAccount unsafeUpdateUserAccount(UserAccount userAccount) {
-        ops.save(userAccount);
-        return userAccount;
+    public Mono<UserAccount> unsafeUpdateUserAccount(UserAccount userAccount) {
+        return ops.save(userAccount);
     }
 
     @Override
     @BiqaAuditObject
-    public UserAccount updateUserAccountForCurrentDomain(UserAccount userAccount) throws Exception {
+    public Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount userAccount) throws Exception {
         checkDomainRolesPermission(userAccount);
-        UserAccount oldUserAccount = findByUserId(userAccount.getId());
+        findByUserId(userAccount.getId()).flatMap(oldUserAccount -> {
 
-        // do not allow to override some system important fields
-        if (oldUserAccount.getDomain().equals(currentUser.getDomain().getDomain())) {
-            userAccount.setPassword(oldUserAccount.getPassword());
-            userAccount.setoAuth2s(oldUserAccount.getoAuth2s());
-            userAccount.setDomain(oldUserAccount.getDomain());
-            ops.save(userAccount);
-        }
-        return userAccount;
+            // do not allow to override some system important fields
+            if (oldUserAccount.getDomain().equals(currentUser.getDomain().getDomain())) {
+                userAccount.setPassword(oldUserAccount.getPassword());
+                userAccount.setoAuth2s(oldUserAccount.getoAuth2s());
+                userAccount.setDomain(oldUserAccount.getDomain());
+                return ops.save(userAccount).map(l -> userAccount);
+            } else {
+                return Mono.empty();
+            }
+        });
+        return Mono.empty();
     }
 
     @Override
-    public void setCurrentUserOnline() {
+    public Mono<Void> setCurrentUserOnline() {
         Query query = new Query(Criteria.where("id").is(currentUser.getCurrentUser().getId()));
         Update update = new Update().set("lastOnline", new Date());
-        ops.findAndModify(query, update, UserAccount.class);
+        return ops.findAndModify(query, update, UserAccount.class).flatMap(x -> Mono.empty());
     }
 
     @Override
-    public void setCurrentUserPersonalSettings(PersonalSettings personalSettings) {
+    public Mono<Void> setCurrentUserPersonalSettings(PersonalSettings personalSettings) {
         Query query = new Query(Criteria.where("id").is(currentUser.getCurrentUser().getId()));
         Update update = new Update().set("personalSettings", personalSettings);
-        ops.findAndModify(query, update, UserAccount.class);
+        return ops.findAndModify(query, update, UserAccount.class).flatMap(x -> Mono.empty());
     }
 
     @Override
-    public List<UserAccount> findAllUsersInDomain() {
+    public Flux<UserAccount> findAllUsersInDomain() {
         return ops.find(Query.query(Criteria.where("domain").is(currentUser.getDomain().getDomain())), UserAccount.class);
     }
 
     @Override
-    public List<UserAccount> unsafeFindAllUsers() {
+    public Flux<UserAccount> unsafeFindAllUsers() {
         return ops.find(new Query(new Criteria()), UserAccount.class);
     }
 
     @Override
-    public void deleteUserById(String username) {
+    public Mono<Void> deleteUserById(String username) {
         UserAccount userAccount = new UserAccount();
         userAccount.setId(username);
 
-        ops.remove(userAccount);
+        return ops.remove(userAccount).flatMap(x -> Mono.empty());
     }
 
     @Override
-    public List<UserAccount> fullTextSearch(UserSearchRequest searchRequest) {
+    public Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest) {
         TextCriteria criteria = TextCriteria.forDefaultLanguage().matching(searchRequest.getText());
         Criteria criteeria = Criteria.where("domain").is(currentUser.getDomain().getDomain());
         Query query = TextQuery.queryText(criteria).sortByScore().addCriteria(criteeria);

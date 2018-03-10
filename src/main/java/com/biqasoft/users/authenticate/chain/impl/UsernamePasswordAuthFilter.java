@@ -55,7 +55,7 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
 
         List<String> auths;
 
-        user = userAccountRepository.findByUsernameOrOAuthToken(username);
+        user = userAccountRepository.findByUsernameOrOAuthToken(username).block();
         if (user == null) {
             logger.info("Username {}: user not found", username);
             authFailedLimit.processFailedAuth(authenticateRequest);
@@ -104,6 +104,7 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
         result.getAuthenticateResult().setAuths(auths);
         // TODO: set domain
         result.setSuccessProcessed(true);
+        result.getAuthenticateResult().setAuthenticated(true);
 
         return result;
     }
