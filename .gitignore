@@ -3,6 +3,9 @@
 .clover/
 target/
 
+.idea
+*.iml
+
 .patch
 .surefire-*
 *.ipr
