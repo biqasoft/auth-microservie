@@ -1,7 +1,7 @@
 package com.biqasoft.users.authenticate.chain.impl;
 
 import com.biqasoft.entity.constants.SYSTEM_CONSTS;
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.users.authenticate.chain.AuthChainFilter;
 import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
@@ -76,13 +76,13 @@ public class OAuth2AuthFilter implements AuthChainFilter {
 
                 // special OAuth role that grant all actual
                 // user permissions(Spring roles)
-                if (token.getRoles().contains(SYSTEM_ROLES.OAUTH_ALL_USER)) {
+                if (token.getRoles().contains(SystemRoles.OAUTH_ALL_USER)) {
                     auths = user.getRoles();
                 }
             } else {
                 auths = new ArrayList<>();
             }
-            auths.add(SYSTEM_ROLES.OAUTH_AUTHENTICATED);
+            auths.add(SystemRoles.OAUTH_AUTHENTICATED);
 
             result.getAuthenticateResult().setUserAccount(user);
             result.getAuthenticateResult().setAuths(auths);

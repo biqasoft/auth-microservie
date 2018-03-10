@@ -5,7 +5,7 @@ import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.annotations.BiqaAuditObject;
 import com.biqasoft.entity.constants.SYSTEM_CONSTS;
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.PersonalSettings;
@@ -57,15 +57,15 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
      */
     private void checkDomainRolesPermission(UserAccount userAccount) throws Exception {
         List<String> currentUserRoles = currentUser.getCurrentUser().getRoles();
-        if (!currentUserRoles.contains(SYSTEM_ROLES.ROLE_ADMIN) && !currentUserRoles.contains(SYSTEM_ROLES.ROOT_USER)) {
-            if (userAccount.getRoles().contains(SYSTEM_ROLES.ROLE_ADMIN)) {
+        if (!currentUserRoles.contains(SystemRoles.ROLE_ADMIN) && !currentUserRoles.contains(SystemRoles.ROOT_USER)) {
+            if (userAccount.getRoles().contains(SystemRoles.ROLE_ADMIN)) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.grant.role.admin.error");
             }
         }
     }
 
     private void checkSystemRolesPermission(UserAccount userAccount) throws Exception {
-        if (userAccount.getRoles().contains(SYSTEM_ROLES.ROOT_USER)) {
+        if (userAccount.getRoles().contains(SystemRoles.ROOT_USER)) {
             ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.grant.role.root.error");
         }
     }

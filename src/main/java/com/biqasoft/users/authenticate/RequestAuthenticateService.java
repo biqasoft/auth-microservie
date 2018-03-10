@@ -4,8 +4,6 @@
 
 package com.biqasoft.users.authenticate;
 
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
-import com.biqasoft.users.auth.CurrentUserContextProviderImpl;
 import com.biqasoft.users.authenticate.chain.AuthChainFilter;
 import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
 import com.biqasoft.users.authenticate.chain.UserAuthChecks;
@@ -14,20 +12,10 @@ import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
-import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.biqasoft.users.domain.DomainRepository;
-import com.biqasoft.users.domain.settings.DomainSettingsRepository;
-import com.biqasoft.users.oauth2.OAuth2Repository;
-import com.biqasoft.users.useraccount.UserAccount;
-import com.biqasoft.users.useraccount.UserAccountRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -105,24 +93,27 @@ public class RequestAuthenticateService {
             continue;
         }
 
+        // todo
+        return null;
+
 //        if (!StringUtils.hasText(password)) {
 //            logger.info("Username {}: no password provided", username);
 //            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.empty_password");
 //        }
 
-         else {
+//         else {
 
 
-            if (!(UserAccount.UserAccountStatus.STATUS_APPROVED.name().equals(user.getStatus()))) {
-                logger.info("Username {}: not approved status is {} | {}", username, user.getStatus(), UserAccount.UserAccountStatus.STATUS_APPROVED.name());
-                authFailedLimit.processFailedAuth(authenticateRequest);
-                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.not_approved");
-            }
-            if (!user.getEnabled()) {
-                logger.info("Username {}: disabled", username);
-                authFailedLimit.processFailedAuth(authenticateRequest);
-                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.user_disabled");
-            }
+//            if (!(UserAccount.UserAccountStatus.STATUS_APPROVED.name().equals(user.getStatus()))) {
+//                logger.info("Username {}: not approved status is {} | {}", username, user.getStatus(), UserAccount.UserAccountStatus.STATUS_APPROVED.name());
+//                authFailedLimit.processFailedAuth(authenticateRequest);
+//                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.not_approved");
+//            }
+//            if (!user.getEnabled()) {
+//                logger.info("Username {}: disabled", username);
+//                authFailedLimit.processFailedAuth(authenticateRequest);
+//                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.user_disabled");
+//            }
 //            if (!user.getRoles().isEmpty()) {
 //                auths = AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRolesCSV());
 //            } else {
@@ -130,16 +121,16 @@ public class RequestAuthenticateService {
 //            }
 
             // if we auth with root password - add special role
-        }
+//        }
 
 
 //        response.setDomainSettings(domainSettingsRepository.findDomainSettingsById(user.getDomain())); // do not add domain settings because they not always need
 
-        if (!StringUtils.isEmpty(authenticateRequest.getIp())){
-            userAuthChecks.checkUserIpPatternAndActiveDomain(authenticateRequest.getIp(), user, response.getDomain());
-        }
-
-        return response;
+//        if (!StringUtils.isEmpty(authenticateRequest.getIp())){
+//            userAuthChecks.checkUserIpPatternAndActiveDomain(authenticateRequest.getIp(), user, response.getDomain());
+//        }
+//
+//        return response;
     }
 
 }

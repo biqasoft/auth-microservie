@@ -9,7 +9,7 @@
 package com.biqasoft.users.useraccount;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.Domain;
 import com.biqasoft.users.auth.CurrentUserContextProviderImpl;
 import com.biqasoft.users.auth.UserAccountMapper;
@@ -85,7 +85,7 @@ public class GlobalUserController {
         user.setLastname(userAccountAddRequest.getUserAccount().getLastname());
         user.setEmail(userAccountAddRequest.getUserAccount().getEmail());
 
-        user.setRoles(Lists.newArrayList(SYSTEM_ROLES.ROLE_ADMIN, SYSTEM_ROLES.ALLOW_ALL_DOMAIN_BASED));
+        user.setRoles(Lists.newArrayList(SystemRoles.ROLE_ADMIN, SystemRoles.ALLOW_ALL_DOMAIN_BASED));
         user.setDomain(domain.getDomain());
 
         CreatedUser createdUserInternal = userAccountRepository.registerNewUser(user);

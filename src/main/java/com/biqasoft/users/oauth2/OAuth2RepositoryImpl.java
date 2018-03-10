@@ -3,7 +3,7 @@ package com.biqasoft.users.oauth2;
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.constants.SYSTEM_CONSTS;
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
@@ -119,7 +119,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
         // check that only roles, that user have
         // he assign (delegate) to role of oauth token
         List<String> roles = request.getRoles().stream()
-                .filter(x -> (currentUser.getCurrentUser().getRoles().contains(x) || x.equals(SYSTEM_ROLES.OAUTH_ALL_USER))).collect(Collectors.toList());
+                .filter(x -> (currentUser.getCurrentUser().getRoles().contains(x) || x.equals(SystemRoles.OAUTH_ALL_USER))).collect(Collectors.toList());
 
         auth2.setRoles(roles);
         auth2.setEnabled(true);
@@ -146,7 +146,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
 
         if (CollectionUtils.isEmpty(rolesRequested)) {
             List<String> roles = new ArrayList<>();
-            roles.add(SYSTEM_ROLES.OAUTH_ALL_USER);
+            roles.add(SystemRoles.OAUTH_ALL_USER);
             request.setRoles(roles);
         } else {
             request.setRoles(rolesRequested);

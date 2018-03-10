@@ -5,15 +5,13 @@
 package com.biqasoft.users.domain;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
-import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.common.utils.RandomString;
+import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.Domain;
 import com.biqasoft.entity.core.DomainSettings;
-import com.biqasoft.microservice.database.MongoTenantHelper;
 import com.biqasoft.microservice.database.MainDatabase;
-import com.mongodb.BasicDBObject;
-import com.mongodb.CommandResult;
-import com.mongodb.DBObject;
+import com.biqasoft.microservice.database.MongoTenantHelper;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,19 +68,19 @@ public class DomainRepository {
      * @param domain
      * @return
      */
-    public DBObject deleteDomainUnsafe(String domain) {
+    public Document deleteDomainUnsafe(String domain) {
         Domain domainInCRM = findDomainById(domain);
         if (domainInCRM == null) {
             throw new RuntimeException("No such domain");
         }
 
         // delete full database
-        DBObject cmd = new BasicDBObject();
+        Document cmd = new Document();
         cmd.put("dropDatabase", 1);
 
         MongoTemplate template = mongoTenantHelper.domainDataBaseUnsafeGet(domain);
 
-        CommandResult result = template.getDb().command(cmd);
+        Document result = template.getDb().runCommand(cmd);
 
         // delete domainCrmObject
         ops.remove(domainInCRM);

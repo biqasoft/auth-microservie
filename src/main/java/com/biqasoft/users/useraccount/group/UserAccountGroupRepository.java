@@ -8,7 +8,7 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.annotations.BiqaAuditObject;
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.microservice.database.TenantDatabase;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.entity.core.useraccount.UserAccountGroup;
@@ -52,14 +52,14 @@ public class UserAccountGroupRepository {
      */
     private void checkRolesPermission(UserAccountGroup userAccountGroup) {
 
-        if (!currentUser.getCurrentUser().getRoles().contains(SYSTEM_ROLES.ROLE_ADMIN) &&
-                !currentUser.getCurrentUser().getRoles().contains(SYSTEM_ROLES.ROOT_USER)) {
-            if (userAccountGroup.getGrantedRoles().contains(SYSTEM_ROLES.ROLE_ADMIN)) {
+        if (!currentUser.getCurrentUser().getRoles().contains(SystemRoles.ROLE_ADMIN) &&
+                !currentUser.getCurrentUser().getRoles().contains(SystemRoles.ROOT_USER)) {
+            if (userAccountGroup.getGrantedRoles().contains(SystemRoles.ROLE_ADMIN)) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.invalid.only_admin_can_grant_role_admin");
             }
         }
 
-        if (userAccountGroup.getGrantedRoles().contains(SYSTEM_ROLES.ROOT_USER)) {
+        if (userAccountGroup.getGrantedRoles().contains(SystemRoles.ROOT_USER)) {
             ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.invalid.only_admin_can_grant_role_root");
         }
 

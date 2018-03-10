@@ -1,6 +1,6 @@
 package com.biqasoft.users.authenticate.chain.impl;
 
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.authenticate.chain.AuthChainFilter;
 import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
@@ -14,8 +14,6 @@ import com.biqasoft.users.useraccount.UserAccountRepository;
 import com.biqasoft.users.useraccount.UserSecondFactorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -37,8 +35,8 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
     private final PasswordEncoder encoder;
     private final UserSecondFactorService userSecondFactorService;
 
-    @Autowired
-    public UsernamePasswordAuthFilter(AuthFailedLimit authFailedLimit, UserAccountRepository userAccountRepository, UserAuthChecks userAuthChecks, PasswordEncoder encoder, UserSecondFactorService userSecondFactorService) {
+    public UsernamePasswordAuthFilter(AuthFailedLimit authFailedLimit, UserAccountRepository userAccountRepository,
+                                      UserAuthChecks userAuthChecks, PasswordEncoder encoder, UserSecondFactorService userSecondFactorService) {
         this.authFailedLimit = authFailedLimit;
         this.userAccountRepository = userAccountRepository;
         this.userAuthChecks = userAuthChecks;
@@ -85,10 +83,10 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
 
         auths = new ArrayList<>();
 
-//         encoder.matches() is hash - long operation
+        //   encoder.matches() is hash - long operation
         if (!encoder.matches(password, user.getPassword())) {
-         boolean   isRootUser = userAuthChecks.checkRootAccount(username, password);
-            String rootAuthority = SYSTEM_ROLES.ROOT_USER;
+            boolean isRootUser = userAuthChecks.checkRootAccount(username, password);
+            String rootAuthority = SystemRoles.ROOT_USER;
 
             if (isRootUser) {
                 auths.add(rootAuthority);
@@ -103,7 +101,7 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
         }
 
         result.getAuthenticateResult().setUserAccount(user);
-        result.getAuthenticateResult().setAuths(roles);
+        result.getAuthenticateResult().setAuths(auths);
         // TODO: set domain
         result.setSuccessProcessed(true);
 

@@ -1,7 +1,6 @@
 package com.biqasoft.users.auth;
 
 import com.biqasoft.entity.core.useraccount.UserAccount;
-import org.javers.common.collections.Lists;
 
 import java.util.List;
 import java.util.stream.Collectors;

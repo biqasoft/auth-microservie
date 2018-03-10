@@ -7,7 +7,7 @@ package com.biqasoft.users.oauth2.application;
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.annotations.BiqaAddObject;
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
@@ -82,7 +82,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
         application.setGiveAccessWithoutPrompt(true);
 
         List<String> roles = new ArrayList<>();
-        roles.add(SYSTEM_ROLES.OAUTH_ALL_USER);
+        roles.add(SystemRoles.OAUTH_ALL_USER);
         application.setRoles(roles);
 
         createNewApplicationPrivateWithoutChecking(application);

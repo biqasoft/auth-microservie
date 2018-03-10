@@ -4,7 +4,7 @@
 
 package com.biqasoft.users.useraccount.group;
 
-import com.biqasoft.entity.constants.SYSTEM_ROLES;
+import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.useraccount.UserAccountGroup;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Api(value = "User Accounts Groups")
-@Secured(value = {SYSTEM_ROLES.USER_GROUP_ROOT, SYSTEM_ROLES.ALLOW_ALL_DOMAIN_BASED, SYSTEM_ROLES.ROLE_ADMIN})
+@Secured(value = {SystemRoles.USER_GROUP_ROOT, SystemRoles.ALLOW_ALL_DOMAIN_BASED, SystemRoles.ROLE_ADMIN})
 @RestController
 @RequestMapping(value = "/v1/users/group")
 public class UserAccountGroupController {
