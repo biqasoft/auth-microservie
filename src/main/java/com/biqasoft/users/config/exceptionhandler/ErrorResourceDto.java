@@ -4,10 +4,8 @@
 
 package com.biqasoft.users.config.exceptionhandler;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+public class ErrorResourceDto {
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ErrorResource {
     private String code;
     private String message;
 
@@ -16,10 +14,7 @@ public class ErrorResource {
 
     private String domain;
 
-    public ErrorResource() {
-    }
-
-    public ErrorResource(String code, String message) {
+    public ErrorResourceDto(String code, String message) {
         this.code = code;
         this.message = message;
     }

@@ -5,10 +5,13 @@
 package com.biqasoft.users.domain.settings;
 
 import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.authenticate.AuthHelper;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 /**
  * {@link com.biqasoft.microservice.common.MicroserviceDomain}
@@ -31,8 +34,8 @@ public class DomainSettingsController {
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "my",method = RequestMethod.GET)
-    public DomainSettings my() {
-        return domainSettingsRepository.findDomainSettingsCurrentUser();
+    public DomainSettings my(Principal principal) {
+        return domainSettingsRepository.findDomainSettingsCurrentUser(AuthHelper.castFromPrincipal(principal));
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -47,8 +50,8 @@ public class DomainSettingsController {
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "domain", method = RequestMethod.PUT)
-    public DomainSettings updateDomainForCurrentUser(@RequestBody DomainSettings domainSettings) {
-        return domainSettingsRepository.updateDomainSettings(domainSettings);
+    public DomainSettings updateDomainForCurrentUser(@RequestBody DomainSettings domainSettings, Principal principal) {
+        return domainSettingsRepository.updateDomainSettings(domainSettings, AuthHelper.castFromPrincipal(principal));
     }
 
     @RequestMapping(value = "unsafe", method = RequestMethod.PUT)

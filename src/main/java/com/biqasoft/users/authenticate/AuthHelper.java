@@ -4,13 +4,16 @@
 
 package com.biqasoft.users.authenticate;
 
+import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
+import com.biqasoft.users.config.AuthServerInternalAuth;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Objects;
 
 /**
@@ -23,6 +26,9 @@ import java.util.Objects;
 public class AuthHelper {
 
     private static final ObjectMapper objectMapper;
+    private static final String BASIC_AUTH_PREFIX = "Basic ";
+    private static final String BIQA_AUTH_PREFIX = "Biqa ";
+    public static final String AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX = "OAUTH2_";
 
     static {
         objectMapper = new ObjectMapper();
@@ -38,9 +44,9 @@ public class AuthHelper {
     public static UserNameWithPassword processTokenHeaderToUserNameAndPassword(String token) {
         UserNameWithPassword result = null;
 
-        if (token.startsWith("Basic ")) {
+        if (token.startsWith(BASIC_AUTH_PREFIX)) {
             result = tryExtractBasicAuth(token);
-        } else if (token.startsWith("Biqa ")) {
+        } else if (token.startsWith(BIQA_AUTH_PREFIX)) {
             result = tryExtractBiqaAuth(token);
         }
 
@@ -60,7 +66,7 @@ public class AuthHelper {
     private static UserNameWithPassword tryExtractBiqaAuth(String token) {
         String decodedToken;
         try {
-            token = token.replace("Biqa ", "");// / spring security bug in decode from base64 -> use tomcat. see tests
+            token = token.replace(BIQA_AUTH_PREFIX, "");// / spring security bug in decode from base64 -> use tomcat. see tests
             decodedToken = new String(Base64.decodeBase64(token.getBytes("UTF-8")));
             return objectMapper.readValue(decodedToken, UserNameWithPassword.class);
         } catch (IOException e) {
@@ -76,7 +82,7 @@ public class AuthHelper {
     private static UserNameWithPassword tryExtractBasicAuth(String token) {
         String decodedToken;
         try {
-            String[] strings = token.split("Basic ", 2);
+            String[] strings = token.split(BASIC_AUTH_PREFIX, 2);
             if (strings.length != 2) {
                 return null;
             }
@@ -102,6 +108,10 @@ public class AuthHelper {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static CurrentUserCtx castFromPrincipal(Principal principal) {
+        return new CurrentUserCtx ((AuthServerInternalAuth) principal);
     }
 
 }

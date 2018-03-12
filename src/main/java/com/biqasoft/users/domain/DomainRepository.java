@@ -6,11 +6,11 @@ package com.biqasoft.users.domain;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
-import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.Domain;
 import com.biqasoft.entity.core.DomainSettings;
 import com.biqasoft.microservice.database.MainDatabase;
 import com.biqasoft.microservice.database.MongoTenantHelper;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +30,14 @@ import java.util.List;
 public class DomainRepository {
 
     private final MongoOperations ops;
-    private final CurrentUser currentUser;
     private final MongoTenantHelper mongoTenantHelper;
     private static final Logger logger = LoggerFactory.getLogger(DomainRepository.class);
     private final RandomString domainNameRandomString;
 
     @Autowired
-    public DomainRepository(@MainDatabase MongoOperations ops, CurrentUser currentUser, MongoTenantHelper mongoTenantHelper,
+    public DomainRepository(@MainDatabase MongoOperations ops, MongoTenantHelper mongoTenantHelper,
                             @Value("${biqa.domain.default.length}") Integer defaultDomainLength) {
         this.ops = ops;
-        this.currentUser = currentUser;
         this.mongoTenantHelper = mongoTenantHelper;
         this.domainNameRandomString  = new RandomString(defaultDomainLength, RandomString.Strategy.ONLY_ENGLISH_CHARS);
     }
@@ -48,8 +46,8 @@ public class DomainRepository {
         return ops.findOne(Query.query(Criteria.where("domain").is(domain)), Domain.class);
     }
 
-    public Domain findDomainCurrentUser() {
-        return ops.findOne(Query.query(Criteria.where("domain").is(currentUser.getDomain().getDomain())), Domain.class);
+    public Domain findDomainCurrentUser(CurrentUserCtx ctx) {
+        return ops.findOne(Query.query(Criteria.where("domain").is(ctx.getDomain().getDomain())), Domain.class);
     }
 
     /**
@@ -129,8 +127,8 @@ public class DomainRepository {
         return note;
     }
 
-    public Domain updateDomainForCurrentUser(Domain domain) {
-        if (!domain.getDomain().equals(currentUser.getDomain().getDomain())){
+    public Domain updateDomainForCurrentUser(Domain domain, CurrentUserCtx ctx) {
+        if (!domain.getDomain().equals(ctx.getDomain().getDomain())){
             ThrowExceptionHelper.throwExceptionInvalidRequest("Try to modify not own domain");
         }
 

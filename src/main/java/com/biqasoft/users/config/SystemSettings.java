@@ -9,6 +9,7 @@
 package com.biqasoft.users.config;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -20,6 +21,7 @@ import java.io.Serializable;
  */
 @Document
 @ApiModel
+@Data
 public class SystemSettings implements Serializable {
 
     @Id
@@ -27,20 +29,4 @@ public class SystemSettings implements Serializable {
 
     private String systemOAuthApplicationId = null;
 
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getSystemOAuthApplicationId() {
-        return systemOAuthApplicationId;
-    }
-
-    public void setSystemOAuthApplicationId(String systemOAuthApplicationId) {
-        this.systemOAuthApplicationId = systemOAuthApplicationId;
-    }
 }

@@ -9,6 +9,7 @@
 package com.biqasoft.users.passwordcontrol;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
+import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.passwordcontrol.dto.PasswordResetDTO;
 import com.biqasoft.users.passwordcontrol.dto.ResetPasswordTokenDTO;
 import com.biqasoft.users.useraccount.UserAccount;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -39,8 +42,8 @@ public class UserPasswordController {
 
     @ApiOperation(value = "change password password for some user")
     @RequestMapping(value = "domain/change_password", method = RequestMethod.PUT)
-    public PasswordResetDTO changePassword(@RequestBody UserAccount userPosted) {
-        return passwordResetRepository.unsafeResetPassword(userPosted);
+    public PasswordResetDTO changePassword(@RequestBody UserAccount userPosted, Principal principal) {
+        return passwordResetRepository.unsafeResetPassword(userPosted, AuthHelper.castFromPrincipal(principal));
     }
 
     @ApiOperation("Reset user password by secret token")

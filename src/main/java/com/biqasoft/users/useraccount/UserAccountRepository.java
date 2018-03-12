@@ -1,6 +1,7 @@
 package com.biqasoft.users.useraccount;
 
 import com.biqasoft.entity.core.useraccount.PersonalSettings;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,9 +15,9 @@ public interface UserAccountRepository {
 
     Mono<UserAccount> findUserByOAuth2UserNameToken(String customUsername);
 
-    Mono<CreatedUser> registerNewUser(UserAccount userAccount) throws Exception;
+    Mono<CreatedUser> registerNewUser(UserAccount userAccount, CurrentUserCtx ctx) throws Exception;
 
-    Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password) throws Exception;
+    Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password, CurrentUserCtx ctx) throws Exception;
 
         /**
          * Find user account by id only in current domain
@@ -24,7 +25,7 @@ public interface UserAccountRepository {
          * @param user
          * @return
          */
-    Mono<UserAccount> findByUserId(String user);
+    Mono<UserAccount> findByUserId(String user, CurrentUserCtx ctx);
 
     /**
      * Find user account by id
@@ -62,12 +63,12 @@ public interface UserAccountRepository {
      * @return
      * @throws Exception
      */
-    Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount newObject) throws Exception;
+    Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount newObject, CurrentUserCtx ctx) throws Exception;
 
     /**
      * Set current user as online
      */
-    Mono<Void> setCurrentUserOnline();
+    Mono<Void> setCurrentUserOnline(CurrentUserCtx ctx);
 
     /**
      * Update personal settings (this is serialised JSON by browser which he stores settings with UI etc...)
@@ -75,14 +76,14 @@ public interface UserAccountRepository {
      *
      * @param personalSettings
      */
-    Mono<Void> setCurrentUserPersonalSettings(PersonalSettings personalSettings);
+    Mono<Void> setCurrentUserPersonalSettings(PersonalSettings personalSettings, CurrentUserCtx ctx);
 
     /**
      * Find all users in current domain
      *
      * @return
      */
-    Flux<UserAccount> findAllUsersInDomain();
+    Flux<UserAccount> findAllUsersInDomain(CurrentUserCtx ctx);
 
     Flux<UserAccount> unsafeFindAllUsers();
 
@@ -94,5 +95,5 @@ public interface UserAccountRepository {
      */
     Mono<Void> deleteUserById(String id);
 
-    Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest);
+    Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest, CurrentUserCtx ctx);
 }

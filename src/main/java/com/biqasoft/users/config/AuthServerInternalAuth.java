@@ -52,4 +52,8 @@ public class AuthServerInternalAuth implements Authentication {
     public String getName() {
         return authenticateResult.getUserAccount().getUsername();
     }
+
+    public AuthenticateResult getAuthenticateResult() {
+        return authenticateResult;
+    }
 }

@@ -29,8 +29,24 @@ public class ExceptionHandler implements WebExceptionHandler {
     @Override
     public Mono<Void> handle(ServerWebExchange serverWebExchange, Throwable throwable) {
         if (throwable instanceof InvalidRequestLocalizedException) {
+            InvalidRequestLocalizedException ire = (InvalidRequestLocalizedException) throwable;
+            ErrorResourceDto error = new ErrorResourceDto("InvalidRequest", ire.getMessage());
+
+            try {
+                ServerHttpResponse response = serverWebExchange.getResponse();
+                DataBuffer buffer = response.bufferFactory().allocateBuffer();
+                o.writeValue(buffer.asOutputStream(), error);
+
+                response.setStatusCode(HttpStatus.UNPROCESSABLE_ENTITY);
+                return response.writeAndFlushWith(Mono.just(Mono.just(buffer))).flatMap(x -> Mono.empty());
+            } catch (java.io.IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (throwable instanceof InvalidRequestException) {
             InvalidRequestException ire = (InvalidRequestException) throwable;
-            ErrorResource error = new ErrorResource("InvalidRequest", ire.getMessage());
+            ErrorResourceDto error = new ErrorResourceDto("InvalidRequest", ire.getMessage());
 
             try {
                 ServerHttpResponse response = serverWebExchange.getResponse();
@@ -46,7 +62,7 @@ public class ExceptionHandler implements WebExceptionHandler {
 
         if (throwable instanceof BiqaAuthenticationLocalizedException) {
             BiqaAuthenticationLocalizedException ire = (BiqaAuthenticationLocalizedException) throwable;
-            ErrorResource error = new ErrorResource(ire.getMessage(), messageByLocaleService.getMessage(ire.getMessage()));
+            ErrorResourceDto error = new ErrorResourceDto(ire.getMessage(), messageByLocaleService.getMessage(ire.getMessage()));
 
             try {
                 ServerHttpResponse response = serverWebExchange.getResponse();
@@ -63,44 +79,3 @@ public class ExceptionHandler implements WebExceptionHandler {
         return Mono.error(throwable);
     }
 }
-////    @ExceptionHandler({InvalidRequestException.class})
-//    protected ResponseEntity<Object> handleInvalidRequest(RuntimeException e, WebRequest request) {
-//        InvalidRequestException ire = (InvalidRequestException) e;
-//
-//        ErrorResource error = new ErrorResource("InvalidRequest", ire.getMessage());
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        return handleExceptionInternal(e, error, headers, HttpStatus.UNPROCESSABLE_ENTITY, request);
-//    }
-
-//    @ExceptionHandler({InvalidRequestLocalizedException.class})
-//    protected ResponseEntity<Object> handleInvalidRequestLocalizedException(RuntimeException e, WebRequest request) {
-//        InvalidRequestLocalizedException ire = (InvalidRequestLocalizedException) e;
-//
-//        ErrorResource error = new ErrorResource("InvalidRequest", messageByLocaleService.getMessage(ire.getMessage()));
-//        error.setIdErrorMessage(ire.getMessage());
-//        error.setEnglishErrorMessage(messageByLocaleService.getMessageEnglish(ire.getMessage()));
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        return handleExceptionInternal(e, error, headers, HttpStatus.UNPROCESSABLE_ENTITY, request);
-//    }
-//
-//    @ExceptionHandler({com.biqasoft.microservice.communicator.exceptions.InvalidRequestException.class})
-//    protected ResponseEntity<Object> handleMicroserviceInvalidRequest(RuntimeException e, WebRequest request) throws IOException {
-//        com.biqasoft.microservice.communicator.exceptions.InvalidRequestException ire = (com.biqasoft.microservice.communicator.exceptions.InvalidRequestException) e;
-//
-//        ClientHttpResponse microserviceResponse = ire.getClientHttpResponse();
-//
-//        ErrorResource error = new ErrorResource("InvalidRequest", ire.getMessage());
-//        error.setIdErrorMessage(ire.getMessage());
-//        error.setEnglishErrorMessage(messageByLocaleService.getMessageEnglish(ire.getMessage()));
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        return handleExceptionInternal(e, error, headers, microserviceResponse.getStatusCode(), request);
-//    }

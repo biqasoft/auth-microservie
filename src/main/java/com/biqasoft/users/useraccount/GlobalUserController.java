@@ -12,6 +12,7 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.Domain;
 import com.biqasoft.users.auth.UserAccountMapper;
+import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.domain.DomainRepository;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
@@ -23,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.security.Principal;
 
 /**
  * {@link com.biqasoft.microservice.common.MicroserviceUsersRepository}
@@ -58,9 +61,9 @@ public class GlobalUserController {
     }
 
     @GetMapping(value = "search/domain/id/{id}")
-    public Domain findDomainForUserId(@PathVariable("id") String id) {
+    public Domain findDomainForUserId(@PathVariable("id") String id, Principal principal) {
         // TODO:
-        UserAccount byUserId = userAccountRepository.findByUserId(id).block();
+        UserAccount byUserId = userAccountRepository.findByUserId(id, AuthHelper.castFromPrincipal(principal)).block();
 //        String domainForInternalUser = CurrentUserContextProviderImpl.getDomainForInternalUser(byUserId);
 //        return domainRepository.findDomainById(domainForInternalUser);
         return null;
@@ -68,7 +71,7 @@ public class GlobalUserController {
 
     @ApiOperation(value = "register new user in new domain with admin role")
     @PostMapping(value = "register")
-    public CreatedUserDto register(@RequestBody UserAccountAddRequestDTO userAccountAddRequest) throws Exception {
+    public CreatedUserDto register(@RequestBody UserAccountAddRequestDTO userAccountAddRequest, Principal principal) throws Exception {
 
         // user with same email already exist
         if (userAccountRepository.findByUsernameOrOAuthToken(userAccountAddRequest.getUserAccount().getEmail()) != null) {
@@ -89,7 +92,7 @@ public class GlobalUserController {
         user.setRoles(Lists.newArrayList(SystemRoles.ROLE_ADMIN, SystemRoles.ALLOW_ALL_DOMAIN_BASED));
         user.setDomain(domain.getDomain());
 
-        CreatedUser createdUserInternal = userAccountRepository.registerNewUser(user).block();
+        CreatedUser createdUserInternal = userAccountRepository.registerNewUser(user, AuthHelper.castFromPrincipal(principal)).block();
 
         CreatedUserDto response = new CreatedUserDto();
         response.setDomain(createdUserInternal.getDomain());

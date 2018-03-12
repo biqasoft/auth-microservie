@@ -1,6 +1,8 @@
 package com.biqasoft.users.authenticate.chain;
 
 import com.biqasoft.entity.core.Domain;
+import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
+import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.biqasoft.users.useraccount.UserAccount;
 import org.slf4j.Logger;
@@ -23,11 +25,13 @@ public class UserAuthChecks {
 
     private final Boolean enableRootSystemUser;
     private final String passwordRootSystemUser;
+    private final AuthFailedLimit authFailedLimit;
 
-    public UserAuthChecks( @Value("${biqa.security.global.root.enable:false}") boolean enableRootSystemUser,
-                           @Value("${biqa.security.global.root.password:NO_PASSWORD}") String passwordRootSystemUser) {
+    public UserAuthChecks(@Value("${biqa.security.global.root.enable:false}") boolean enableRootSystemUser,
+                          @Value("${biqa.security.global.root.password:NO_PASSWORD}") String passwordRootSystemUser, AuthFailedLimit authFailedLimit) {
         this.enableRootSystemUser = enableRootSystemUser;
         this.passwordRootSystemUser = passwordRootSystemUser;
+        this.authFailedLimit = authFailedLimit;
     }
 
     /**
@@ -57,6 +61,19 @@ public class UserAuthChecks {
             if (!domain.isActive()) {
                 ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.domain_inactive");
             }
+        }
+    }
+
+    public void checkUserEnabled(UserAccount user, AuthenticateRequest authenticateRequest) {
+        if (!(UserAccount.UserAccountStatus.STATUS_APPROVED.name().equals(user.getStatus()))) {
+            logger.info("Username {}: not approved status is {} | {}", user.getUsername(), user.getStatus(), UserAccount.UserAccountStatus.STATUS_APPROVED.name());
+            this.authFailedLimit.processFailedAuth(authenticateRequest);
+            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.not_approved");
+        }
+        if (!user.getEnabled()) {
+            logger.info("Username {}: disabled", user.getUsername());
+            this.authFailedLimit.processFailedAuth(authenticateRequest);
+            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.user_disabled");
         }
     }
 

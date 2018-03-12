@@ -4,14 +4,12 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.annotations.BiqaAuditObject;
-import com.biqasoft.entity.constants.SYSTEM_CONSTS;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
-import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.PersonalSettings;
 import com.biqasoft.entity.core.useraccount.UserAccountGroup;
-import com.biqasoft.microservice.database.MainDatabase;
 import com.biqasoft.microservice.database.MainReactiveDatabase;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import com.biqasoft.users.useraccount.group.UserAccountGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,19 +25,19 @@ import reactor.core.publisher.Mono;
 import java.util.Date;
 import java.util.List;
 
+import static com.biqasoft.users.authenticate.AuthHelper.AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX;
+
 @Service
 public class UserAccountRepositoryImpl implements UserAccountRepository {
 
-    private final CurrentUser currentUser;
     private final ReactiveMongoOperations ops;
     private final PasswordEncoder passwordEncoder;
     private final RandomString randomPassword;
 
     @Autowired
-    public UserAccountRepositoryImpl(@MainReactiveDatabase ReactiveMongoOperations ops, CurrentUser currentUser, PasswordEncoder passwordEncoder,
+    public UserAccountRepositoryImpl(@MainReactiveDatabase ReactiveMongoOperations ops, PasswordEncoder passwordEncoder,
                                      @Value("${biqa.auth.password.default.length}") Integer defaultPasswordLength) {
         this.ops = ops;
-        this.currentUser = currentUser;
         this.passwordEncoder = passwordEncoder;
         this.randomPassword = new RandomString(defaultPasswordLength, RandomString.Strategy.ENGLISH_CHARS_WITH_SPECIAL_CHARS_ALL);
     }
@@ -58,8 +56,8 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
      * @param userAccount
      * @throws Exception
      */
-    private void checkDomainRolesPermission(UserAccount userAccount) throws Exception {
-        List<String> currentUserRoles = currentUser.getCurrentUser().getRoles();
+    private void checkDomainRolesPermission(UserAccount userAccount, CurrentUserCtx ctx) throws Exception {
+        List<String> currentUserRoles = ctx.getCurrentUser().getRoles();
         if (!currentUserRoles.contains(SystemRoles.ROLE_ADMIN) && !currentUserRoles.contains(SystemRoles.ROOT_USER)) {
             if (userAccount.getRoles().contains(SystemRoles.ROLE_ADMIN)) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.grant.role.admin.error");
@@ -79,31 +77,31 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
      * @param userAccount
      */
     private void checkUserAccountRulesRequirements(UserAccount userAccount) {
-        if (userAccount.getUsername().startsWith(SYSTEM_CONSTS.AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
+        if (userAccount.getUsername().startsWith(AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
             ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.create.username.forbidden.symbols");
         }
     }
 
     @Override
-    public Mono<CreatedUser> registerNewUser(UserAccount userAccount) throws Exception {
-        return create(userAccount, true);
+    public Mono<CreatedUser> registerNewUser(UserAccount userAccount, CurrentUserCtx ctx) throws Exception {
+        return create(userAccount, true, ctx);
     }
 
     @Override
     @BiqaAddObject
     @BiqaAuditObject
-    public Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password) throws Exception {
+    public Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password, CurrentUserCtx ctx) throws Exception {
         userAccount.setPassword(password); //dirty hack
-        return create(userAccount, false);
+        return create(userAccount, false, ctx);
     }
 
-    private Mono<CreatedUser> create(UserAccount userAccount, boolean anonymous) throws Exception {
+    private Mono<CreatedUser> create(UserAccount userAccount, boolean anonymous, CurrentUserCtx ctx) throws Exception {
 
         if (anonymous) {
             checkSystemRolesPermission(userAccount);
         } else {
             checkSystemRolesPermission(userAccount);
-            checkDomainRolesPermission(userAccount);
+            checkDomainRolesPermission(userAccount, ctx);
         }
 
         // duplicate username
@@ -136,8 +134,8 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     }
 
     @Override
-    public Mono<UserAccount> findByUserId(String user) {
-        return ops.findOne(Query.query(Criteria.where("id").is(user).and("domain").is(currentUser.getDomain().getDomain())), UserAccount.class);
+    public Mono<UserAccount> findByUserId(String user, CurrentUserCtx ctx) {
+        return ops.findOne(Query.query(Criteria.where("id").is(user).and("domain").is(ctx.getDomain().getDomain())), UserAccount.class);
     }
 
     @Override
@@ -149,7 +147,7 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     public Mono<UserAccount> findByUsernameOrOAuthToken(String userName) {
 
         // is this is oauth2 token
-        if (userName.startsWith(SYSTEM_CONSTS.AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
+        if (userName.startsWith(AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
             return findUserByOAuth2UserNameToken(userName);
         } else {
             return ops.findOne(Query.query(Criteria.where("username").is(userName)), UserAccount.class);
@@ -168,12 +166,12 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
 
     @Override
     @BiqaAuditObject
-    public Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount userAccount) throws Exception {
-        checkDomainRolesPermission(userAccount);
-        findByUserId(userAccount.getId()).flatMap(oldUserAccount -> {
+    public Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount userAccount, CurrentUserCtx ctx) throws Exception {
+        checkDomainRolesPermission(userAccount, ctx);
+        findByUserId(userAccount.getId(), ctx).flatMap(oldUserAccount -> {
 
             // do not allow to override some system important fields
-            if (oldUserAccount.getDomain().equals(currentUser.getDomain().getDomain())) {
+            if (oldUserAccount.getDomain().equals(ctx.getDomain().getDomain())) {
                 userAccount.setPassword(oldUserAccount.getPassword());
                 userAccount.setoAuth2s(oldUserAccount.getoAuth2s());
                 userAccount.setDomain(oldUserAccount.getDomain());
@@ -186,22 +184,22 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     }
 
     @Override
-    public Mono<Void> setCurrentUserOnline() {
-        Query query = new Query(Criteria.where("id").is(currentUser.getCurrentUser().getId()));
+    public Mono<Void> setCurrentUserOnline(CurrentUserCtx ctx) {
+        Query query = new Query(Criteria.where("id").is(ctx.getCurrentUser().getId()));
         Update update = new Update().set("lastOnline", new Date());
         return ops.findAndModify(query, update, UserAccount.class).flatMap(x -> Mono.empty());
     }
 
     @Override
-    public Mono<Void> setCurrentUserPersonalSettings(PersonalSettings personalSettings) {
-        Query query = new Query(Criteria.where("id").is(currentUser.getCurrentUser().getId()));
+    public Mono<Void> setCurrentUserPersonalSettings(PersonalSettings personalSettings, CurrentUserCtx ctx) {
+        Query query = new Query(Criteria.where("id").is(ctx.getCurrentUser().getId()));
         Update update = new Update().set("personalSettings", personalSettings);
         return ops.findAndModify(query, update, UserAccount.class).flatMap(x -> Mono.empty());
     }
 
     @Override
-    public Flux<UserAccount> findAllUsersInDomain() {
-        return ops.find(Query.query(Criteria.where("domain").is(currentUser.getDomain().getDomain())), UserAccount.class);
+    public Flux<UserAccount> findAllUsersInDomain(CurrentUserCtx ctx) {
+        return ops.find(Query.query(Criteria.where("domain").is(ctx.getDomain().getDomain())), UserAccount.class);
     }
 
     @Override
@@ -218,9 +216,9 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     }
 
     @Override
-    public Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest) {
+    public Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest, CurrentUserCtx ctx) {
         TextCriteria criteria = TextCriteria.forDefaultLanguage().matching(searchRequest.getText());
-        Criteria criteeria = Criteria.where("domain").is(currentUser.getDomain().getDomain());
+        Criteria criteeria = Criteria.where("domain").is(ctx.getDomain().getDomain());
         Query query = TextQuery.queryText(criteria).sortByScore().addCriteria(criteeria);
 
         return ops.find(query, UserAccount.class);

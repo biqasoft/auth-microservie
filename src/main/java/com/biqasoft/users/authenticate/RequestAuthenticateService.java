@@ -108,24 +108,11 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
         return null;
 
 //         TODO:
-//        if (!StringUtils.hasText(password)) {
-//            logger.info("Username {}: no password provided", username);
-//            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.empty_password");
-//        }
 
 //         else {
 
 
-//            if (!(UserAccount.UserAccountStatus.STATUS_APPROVED.name().equals(user.getStatus()))) {
-//                logger.info("Username {}: not approved status is {} | {}", username, user.getStatus(), UserAccount.UserAccountStatus.STATUS_APPROVED.name());
-//                authFailedLimit.processFailedAuth(authenticateRequest);
-//                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.not_approved");
-//            }
-//            if (!user.getEnabled()) {
-//                logger.info("Username {}: disabled", username);
-//                authFailedLimit.processFailedAuth(authenticateRequest);
-//                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.user_disabled");
-//            }
+
 //            if (!user.getRoles().isEmpty()) {
 //                auths = AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRolesCSV());
 //            } else {
@@ -136,11 +123,6 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
 //        }
 
 
-//        response.setDomainSettings(domainSettingsRepository.findDomainSettingsById(user.getDomain())); // do not add domain settings because they not always need
-
-//        if (!StringUtils.isEmpty(authenticateRequest.getIp())){
-//            userAuthChecks.checkUserIpPatternAndActiveDomain(authenticateRequest.getIp(), user, response.getDomain());
-//        }
 //
 //        return response;
     }

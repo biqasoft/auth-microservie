@@ -2,21 +2,18 @@ package com.biqasoft.users.oauth2;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
-import com.biqasoft.entity.constants.SYSTEM_CONSTS;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
-import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.microservice.common.dto.OAuth2NewTokenRequest;
-import com.biqasoft.microservice.database.MainDatabase;
 import com.biqasoft.microservice.database.MainReactiveDatabase;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.oauth2.application.OAuth2ApplicationRepository;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -30,10 +27,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.biqasoft.users.authenticate.AuthHelper.AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX;
+
 @Service
 public class OAuth2RepositoryImpl implements OAuth2Repository {
 
-    private final CurrentUser currentUser;
     private final ReactiveMongoOperations ops;
     private final UserAccountRepository userAccountRepository;
     private final OAuth2ApplicationRepository oAuth2ApplicationRepository;
@@ -42,11 +40,10 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     private RandomString oauthUsernameRandomString;
 
     @Autowired
-    public OAuth2RepositoryImpl(CurrentUser currentUser, UserAccountRepository userAccountRepository, OAuth2ApplicationRepository oAuth2ApplicationRepository,
+    public OAuth2RepositoryImpl(UserAccountRepository userAccountRepository, OAuth2ApplicationRepository oAuth2ApplicationRepository,
                                 @MainReactiveDatabase ReactiveMongoOperations ops,
                                 @Value("${biqa.auth.oauth.secret.code.length}") Integer oauthPasswordLength,
                                 @Value("${biqa.auth.oauth.username.code.length}") Integer oauthUsernameLength) {
-        this.currentUser = currentUser;
         this.userAccountRepository = userAccountRepository;
         this.oAuth2ApplicationRepository = oAuth2ApplicationRepository;
         this.ops = ops;
@@ -56,8 +53,8 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     }
 
     @Override
-    public Flux<UserAccountOAuth2> getCurrentUserTokens() {
-        return userAccountRepository.findByUserId(currentUser.getCurrentUser().getId()).flatMapIterable(userAccount -> {
+    public Flux<UserAccountOAuth2> getCurrentUserTokens(CurrentUserCtx ctx) {
+        return userAccountRepository.findByUserId(ctx.getCurrentUser().getId(), ctx).flatMapIterable(userAccount -> {
             List<UserAccountOAuth2> tokens = new ArrayList<>(userAccount.getoAuth2s());
             tokens.forEach(x -> {
                 x.setAccessCode(null);
@@ -105,13 +102,13 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     }
 
     @Override
-    public Mono<UserAccountOAuth2> createNewOAuthToken(UserAccount userAccountRequested, OAuth2Application oAuth2Application, OAuth2NewTokenRequest request) {
+    public Mono<UserAccountOAuth2> createNewOAuthToken(UserAccount userAccountRequested, OAuth2Application oAuth2Application, OAuth2NewTokenRequest request, CurrentUserCtx ctx) {
         UserAccountOAuth2 auth2 = new UserAccountOAuth2();
         auth2.setClientApplicationID(oAuth2Application.getId());
-        return userAccountRepository.findByUserId(userAccountRequested.getId()).map(userAccount -> {
+        return userAccountRepository.findByUserId(userAccountRequested.getId(), ctx).map(userAccount -> {
 
             String accessCode = oauthTokenRandomString.nextString();
-            String userName = SYSTEM_CONSTS.AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX + oauthUsernameRandomString.nextString();
+            String userName = AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX + oauthUsernameRandomString.nextString();
             String password = oauthTokenRandomString.nextString();
 
             auth2.setUserName(userName);
@@ -121,7 +118,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
             // check that only roles, that user have
             // he assign (delegate) to role of oauth token
             List<String> roles = request.getRoles().stream()
-                    .filter(x -> (currentUser.getCurrentUser().getRoles().contains(x) || x.equals(SystemRoles.OAUTH_ALL_USER))).collect(Collectors.toList());
+                    .filter(x -> (ctx.getCurrentUser().getRoles().contains(x) || x.equals(SystemRoles.OAUTH_ALL_USER))).collect(Collectors.toList());
 
             auth2.setRoles(roles);
             auth2.setEnabled(true);
@@ -142,7 +139,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     }
 
     @Override
-    public Mono<UserNameWithPassword> createAdditionalUsernameAndPasswordCredentialsOauth(UserAccount userAccount, List<String> rolesRequested, Date expireDate) {
+    public Mono<UserNameWithPassword> createAdditionalUsernameAndPasswordCredentialsOauth(UserAccount userAccount, List<String> rolesRequested, Date expireDate, CurrentUserCtx ctx) {
         UserNameWithPassword landingPageResponseDao = new UserNameWithPassword();
 
         OAuth2Application application = oAuth2ApplicationRepository.getSystemOAuthApplication();
@@ -160,7 +157,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
             request.setExpire(expireDate);
         }
 
-        return createNewOAuthToken(userAccount, application, request).map(userAccountOAuth2 -> {
+        return createNewOAuthToken(userAccount, application, request, ctx).map(userAccountOAuth2 -> {
             landingPageResponseDao.setUsername(userAccountOAuth2.getUserName());
             landingPageResponseDao.setPassword(userAccountOAuth2.getAccessToken());
 
@@ -169,8 +166,8 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     }
 
     @Override
-    public Mono<Void> deleteOauthTokenFromUserAccountById(String userAccount, String tokenId) {
-        return userAccountRepository.findByUserId(userAccount).flatMap(account -> {
+    public Mono<Void> deleteOauthTokenFromUserAccountById(String userAccount, String tokenId, CurrentUserCtx ctx) {
+        return userAccountRepository.findByUserId(userAccount, ctx).flatMap(account -> {
             account.setoAuth2s(account.getoAuth2s().stream().filter(x -> !x.getUserName().equals(tokenId)).collect(Collectors.toList()));
             return userAccountRepository.unsafeUpdateUserAccount(account).flatMap(l -> Mono.empty());
         });

@@ -5,17 +5,17 @@
 package com.biqasoft.users.useraccount.group;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
-import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.annotations.BiqaAuditObject;
 import com.biqasoft.entity.constants.SystemRoles;
-import com.biqasoft.microservice.database.TenantDatabase;
-import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.entity.core.useraccount.UserAccountGroup;
+import com.biqasoft.microservice.database.MongoTenantHelper;
+import com.biqasoft.users.auth.CurrentUserCtx;
+import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import com.biqasoft.users.useraccount.UserAccountRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
@@ -33,15 +33,13 @@ import java.util.stream.Collectors;
 @Service
 public class UserAccountGroupRepository {
 
-    private final MongoOperations tenant;
     private final UserAccountRepository userAccountRepository;
-    private final CurrentUser currentUser;
+    private final MongoTenantHelper mongoTenantHelper;
 
     @Autowired
-    public UserAccountGroupRepository(UserAccountRepository userAccountRepository, @TenantDatabase MongoOperations tenant, CurrentUser currentUser) {
+    public UserAccountGroupRepository(UserAccountRepository userAccountRepository, MongoTenantHelper mongoTenantHelper) {
         this.userAccountRepository = userAccountRepository;
-        this.tenant = tenant;
-        this.currentUser = currentUser;
+        this.mongoTenantHelper = mongoTenantHelper;
     }
 
     /**
@@ -50,10 +48,10 @@ public class UserAccountGroupRepository {
      *
      * @param userAccountGroup
      */
-    private void checkRolesPermission(UserAccountGroup userAccountGroup) {
+    private void checkRolesPermission(UserAccountGroup userAccountGroup, CurrentUserCtx ctx) {
 
-        if (!currentUser.getCurrentUser().getRoles().contains(SystemRoles.ROLE_ADMIN) &&
-                !currentUser.getCurrentUser().getRoles().contains(SystemRoles.ROOT_USER)) {
+        if (!ctx.getCurrentUser().getRoles().contains(SystemRoles.ROLE_ADMIN) &&
+                !ctx.getCurrentUser().getRoles().contains(SystemRoles.ROOT_USER)) {
             if (userAccountGroup.getGrantedRoles().contains(SystemRoles.ROLE_ADMIN)) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.invalid.only_admin_can_grant_role_admin");
             }
@@ -70,11 +68,11 @@ public class UserAccountGroupRepository {
      *
      * @param userAccountGroup
      */
-    private void processGroupOperation(UserAccountGroup userAccountGroup) {
-        checkRolesPermission(userAccountGroup);
+    private void processGroupOperation(UserAccountGroup userAccountGroup, CurrentUserCtx ctx) {
+        checkRolesPermission(userAccountGroup, ctx);
 
         // TODO: test > 256 elements
-        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain().toStream().collect(Collectors.toList());
+        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain(ctx).toStream().collect(Collectors.toList());
 
         // delete this group from all users which have this group earlier
         for (UserAccount userAccount : userAccounts) {
@@ -106,10 +104,10 @@ public class UserAccountGroupRepository {
      *
      * @param userAccountGroup
      */
-    private void processDeleteGroupOperation(UserAccountGroup userAccountGroup) {
-        checkRolesPermission(userAccountGroup);
+    private void processDeleteGroupOperation(UserAccountGroup userAccountGroup, CurrentUserCtx ctx) {
+        checkRolesPermission(userAccountGroup, ctx);
 
-        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain().toStream().collect(Collectors.toList());
+        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain(ctx).toStream().collect(Collectors.toList());
 
         // delete this group from all users which have this group earlier
         for (UserAccount userAccount : userAccounts) {
@@ -119,47 +117,52 @@ public class UserAccountGroupRepository {
         }
     }
 
+    private MongoTemplate getTenantTemplate(CurrentUserCtx ctx) {
+        return mongoTenantHelper.domainDataBaseUnsafeGet(ctx.getDomain().getDomain());
+    }
+
+
     @BiqaAddObject
     @BiqaAuditObject
-    public void createUserAccountGroup(UserAccountGroup userAccountGroup) {
-        checkRolesPermission(userAccountGroup);
-        tenant.insert(userAccountGroup);
+    public void createUserAccountGroup(UserAccountGroup userAccountGroup, CurrentUserCtx ctx) {
+        checkRolesPermission(userAccountGroup, ctx);
+        getTenantTemplate(ctx).insert(userAccountGroup);
     }
 
     @BiqaAuditObject
-    public UserAccountGroup updateUserAccountGroup(UserAccountGroup userAccountGroup) {
-        checkRolesPermission(userAccountGroup);
+    public UserAccountGroup updateUserAccountGroup(UserAccountGroup userAccountGroup, CurrentUserCtx ctx) {
+        checkRolesPermission(userAccountGroup, ctx);
 
-        tenant.save(userAccountGroup);
+        getTenantTemplate(ctx).save(userAccountGroup);
 
-        processGroupOperation(userAccountGroup);
+        processGroupOperation(userAccountGroup, ctx);
         return userAccountGroup;
     }
 
-    public void deleteUserAccountGroup(String id) {
-        UserAccountGroup group = findUserAccountGroupById(id);
+    public void deleteUserAccountGroup(String id, CurrentUserCtx ctx) {
+        UserAccountGroup group = findUserAccountGroupById(id, ctx);
 
         if (id == null) {
             ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.group.no_such");
         }
 
-        processDeleteGroupOperation(group);
-        tenant.remove(group);
+        processDeleteGroupOperation(group, ctx);
+        getTenantTemplate(ctx).remove(group);
     }
 
-    public UserAccountGroup findUserAccountGroupById(String id) {
+    public UserAccountGroup findUserAccountGroupById(String id, CurrentUserCtx ctx) {
         Criteria criteria = new Criteria();
         criteria.and("id").is(id);
 
         Query query = new Query(criteria);
-        return tenant.findOne(query, UserAccountGroup.class);
+        return getTenantTemplate(ctx).findOne(query, UserAccountGroup.class);
     }
 
-    public List<UserAccountGroup> findUserAccountGroupAll() {
+    public List<UserAccountGroup> findUserAccountGroupAll(CurrentUserCtx ctx) {
         Criteria criteria = new Criteria();
         Query query = new Query(criteria);
 
-        return tenant.find(query, UserAccountGroup.class);
+        return getTenantTemplate(ctx).find(query, UserAccountGroup.class);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.biqasoft.users.useraccount;
 
-import com.biqasoft.entity.core.CurrentUser;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import org.slf4j.Logger;
@@ -22,11 +22,9 @@ public class UserSecondFactorService {
     private static final Logger logger = LoggerFactory.getLogger(UserSecondFactorService.class);
 
     private final UserAccountRepository userAccountRepository;
-    private final CurrentUser currentUser;
 
-    public UserSecondFactorService(UserAccountRepository userAccountRepository, CurrentUser currentUser) {
+    public UserSecondFactorService(UserAccountRepository userAccountRepository) {
         this.userAccountRepository = userAccountRepository;
-        this.currentUser = currentUser;
     }
 
     /**
@@ -34,8 +32,8 @@ public class UserSecondFactorService {
      * @param newMode should be 2FA enabled
      * @param code - if 2FA is enabled and user want to disable it
      */
-    public void tryToChange2FactorMode(boolean newMode, String code) {
-        UserAccount byUserId = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId()).block();
+    public void tryToChange2FactorMode(boolean newMode, String code, CurrentUserCtx ctx) {
+        UserAccount byUserId = userAccountRepository.findByUserId(ctx.getCurrentUser().getId(), ctx).block();
 
         if (byUserId.isTwoStepActivated() != newMode) {
             if (newMode) {
@@ -87,17 +85,17 @@ public class UserSecondFactorService {
     /**
      * @return DTO with secret code for user
      */
-    public SecondFactorResponseDTO generateSecret2FactorForUser() {
+    public SecondFactorResponseDTO generateSecret2FactorForUser(CurrentUserCtx ctx) {
         SecondFactorResponseDTO secondFactorResponseDTO = new SecondFactorResponseDTO();
 
-        com.biqasoft.entity.core.useraccount.UserAccount currentUserObj = currentUser.getCurrentUser();
+        UserAccount currentUserObj = ctx.getCurrentUser();
         String base32Secret = generateBase32Secret();
 
         // generate the QR code
         String imageUrl = TimeBasedOneTimePasswordUtil.qrImageUrl(currentUserObj.getUsername(), base32Secret);
 
         // we can use the code here and compare it against user input
-        UserAccount byUserId = userAccountRepository.findByUserId(currentUser.getCurrentUser().getId()).block();
+        UserAccount byUserId = userAccountRepository.findByUserId(ctx.getCurrentUser().getId(), ctx).block();
         byUserId.setTwoStepCode(base32Secret);
         byUserId.setTwoStepActivated(false);
         userAccountRepository.unsafeUpdateUserAccount(byUserId);

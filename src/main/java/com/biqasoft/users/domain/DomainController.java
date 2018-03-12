@@ -9,11 +9,13 @@
 package com.biqasoft.users.domain;
 
 import com.biqasoft.entity.core.Domain;
+import com.biqasoft.users.authenticate.AuthHelper;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 /**
@@ -40,9 +42,9 @@ public class DomainController {
         return domainRepository.findAllInDomainsUnsafe();
     }
 
-    @RequestMapping(value = "my", method = RequestMethod.GET)
-    public Domain my() {
-        return domainRepository.findDomainCurrentUser();
+    @GetMapping(value = "my")
+    public Domain my(Principal principal) {
+        return domainRepository.findDomainCurrentUser(AuthHelper.castFromPrincipal(principal));
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -57,8 +59,8 @@ public class DomainController {
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "my", method = RequestMethod.PUT)
-    public Domain updateDomainForCurrentUser(@RequestBody Domain domain) {
-        return domainRepository.updateDomainForCurrentUser(domain);
+    public Domain updateDomainForCurrentUser(@RequestBody Domain domain, Principal principal) {
+        return domainRepository.updateDomainForCurrentUser(domain, AuthHelper.castFromPrincipal(principal));
     }
 
     @RequestMapping(value = "unsafe", method = RequestMethod.PUT)

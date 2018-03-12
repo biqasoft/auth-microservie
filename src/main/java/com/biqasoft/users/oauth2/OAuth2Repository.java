@@ -2,6 +2,7 @@ package com.biqasoft.users.oauth2;
 
 import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.microservice.common.dto.OAuth2NewTokenRequest;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.useraccount.UserAccount;
 import reactor.core.publisher.Flux;
@@ -18,7 +19,7 @@ import java.util.List;
 public interface OAuth2Repository {
     Mono<UserAccount> findUserByOAuth2TokenIDAndUserNameToken(String tokenID, String customUsername);
 
-    Flux<UserAccountOAuth2> getCurrentUserTokens();
+    Flux<UserAccountOAuth2> getCurrentUserTokens(CurrentUserCtx ctx);
 
     Mono<UserAccountOAuth2> findUserWithAccessCodeAndApplicationAndSecretCode(String applicationID, String code, String applicationSecretCode);
 
@@ -30,9 +31,9 @@ public interface OAuth2Repository {
      * @param request
      * @return
      */
-    Mono<UserAccountOAuth2> createNewOAuthToken(UserAccount userAccount, OAuth2Application oAuth2Application, OAuth2NewTokenRequest request);
+    Mono<UserAccountOAuth2> createNewOAuthToken(UserAccount userAccount, OAuth2Application oAuth2Application, OAuth2NewTokenRequest request, CurrentUserCtx ctx);
 
-    Mono<UserNameWithPassword> createAdditionalUsernameAndPasswordCredentialsOauth(UserAccount userAccount, List<String> rolesRequested, Date expireDate);
+    Mono<UserNameWithPassword> createAdditionalUsernameAndPasswordCredentialsOauth(UserAccount userAccount, List<String> rolesRequested, Date expireDate, CurrentUserCtx ctx);
 
-    Mono<Void> deleteOauthTokenFromUserAccountById(String userAccount, String tokenId);
+    Mono<Void> deleteOauthTokenFromUserAccountById(String userAccount, String tokenId, CurrentUserCtx ctx);
 }

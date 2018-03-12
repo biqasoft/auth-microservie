@@ -4,9 +4,9 @@
 
 package com.biqasoft.users.domain.settings;
 
-import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.entity.core.DomainSettings;
 import com.biqasoft.microservice.database.MainDatabase;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -17,12 +17,10 @@ import org.springframework.stereotype.Service;
 public class DomainSettingsRepository {
 
     private final MongoOperations ops;
-    private final CurrentUser currentUser;
 
     @Autowired
-    public DomainSettingsRepository(@MainDatabase MongoOperations ops, CurrentUser currentUser) {
+    public DomainSettingsRepository(@MainDatabase MongoOperations ops) {
         this.ops = ops;
-        this.currentUser = currentUser;
     }
 
     public DomainSettings findDomainSettingsById(String id) {
@@ -34,8 +32,8 @@ public class DomainSettingsRepository {
         return note;
     }
 
-    public DomainSettings updateDomainSettings(DomainSettings domainSettings) {
-        if (domainSettings.getId().equals(currentUser.getDomain().getDomain())) {
+    public DomainSettings updateDomainSettings(DomainSettings domainSettings, CurrentUserCtx ctx) {
+        if (domainSettings.getId().equals(ctx.getDomain().getDomain())) {
             return update(domainSettings);
         }
         return domainSettings;
@@ -46,8 +44,8 @@ public class DomainSettingsRepository {
         return domainSettings;
     }
 
-    public DomainSettings findDomainSettingsCurrentUser() {
-        return ops.findOne(Query.query(Criteria.where("id").is(currentUser.getDomain().getDomain())  ), DomainSettings.class);
+    public DomainSettings findDomainSettingsCurrentUser(CurrentUserCtx ctx) {
+        return ops.findOne(Query.query(Criteria.where("id").is(ctx.getDomain().getDomain())  ), DomainSettings.class);
     }
 
     public void delete(String id){

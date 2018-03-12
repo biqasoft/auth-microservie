@@ -9,6 +9,8 @@ import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
+import com.biqasoft.users.domain.DomainRepository;
+import com.biqasoft.users.domain.settings.DomainSettingsRepository;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import com.biqasoft.users.useraccount.UserSecondFactorService;
@@ -35,13 +37,18 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
     private final PasswordEncoder encoder;
     private final UserSecondFactorService userSecondFactorService;
 
+    private final DomainSettingsRepository domainSettingsRepository;
+    private final DomainRepository domainRepository;
+
     public UsernamePasswordAuthFilter(AuthFailedLimit authFailedLimit, UserAccountRepository userAccountRepository,
-                                      UserAuthChecks userAuthChecks, PasswordEncoder encoder, UserSecondFactorService userSecondFactorService) {
+                                      UserAuthChecks userAuthChecks, PasswordEncoder encoder, UserSecondFactorService userSecondFactorService, DomainSettingsRepository domainSettingsRepository, DomainRepository domainRepository) {
         this.authFailedLimit = authFailedLimit;
         this.userAccountRepository = userAccountRepository;
         this.userAuthChecks = userAuthChecks;
         this.encoder = encoder;
         this.userSecondFactorService = userSecondFactorService;
+        this.domainSettingsRepository = domainSettingsRepository;
+        this.domainRepository = domainRepository;
     }
 
     @Override
@@ -99,6 +106,16 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
                 }
             }
         }
+
+        result.getAuthenticateResult().setDomain(domainRepository.findDomainById(user.getDomain()));
+
+        if (!StringUtils.isEmpty(authenticateRequest.getIp())) {
+            userAuthChecks.checkUserIpPatternAndActiveDomain(authenticateRequest.getIp(), user, result.getAuthenticateResult().getDomain());
+        }
+
+        userAuthChecks.checkUserEnabled(user, authenticateRequest);
+
+        result.getAuthenticateResult().setDomainSettings(domainSettingsRepository.findDomainSettingsById(user.getDomain())); // do not add domain settings because they not always need
 
         result.getAuthenticateResult().setUserAccount(user);
         result.getAuthenticateResult().setAuths(auths);

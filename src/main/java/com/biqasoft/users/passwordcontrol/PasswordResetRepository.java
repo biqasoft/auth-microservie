@@ -8,6 +8,7 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.microservice.database.MainDatabase;
+import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
 import com.biqasoft.users.passwordcontrol.dto.PasswordEncodeRequest;
 import com.biqasoft.users.passwordcontrol.dto.PasswordResetDTO;
@@ -31,20 +32,18 @@ public class PasswordResetRepository {
     private final MongoOperations ops;
     private final PasswordEncoder encoder;
     private final UserAccountRepository userAccountRepository;
-    private final CurrentUser currentUser;
     private final RandomString randomString;
     private final EmailPrepareAndSendService emailPrepareAndSendService;
     private final int resetTokenTtl;
 
     @Autowired
-    public PasswordResetRepository(@MainDatabase MongoOperations ops, PasswordEncoder encoder, UserAccountRepository userAccountRepository, CurrentUser currentUser,
+    public PasswordResetRepository(@MainDatabase MongoOperations ops, PasswordEncoder encoder, UserAccountRepository userAccountRepository,
                                    @Value("${biqa.auth.password.default.length}") Integer defaultPasswordLength, EmailPrepareAndSendService emailPrepareAndSendService,
                                    @Value("${biqa.auth.password.reset.default.ttl}") Integer resetTokenTtl) {
         this.ops = ops;
         this.resetTokenTtl = resetTokenTtl;
         this.encoder = encoder;
         this.userAccountRepository = userAccountRepository;
-        this.currentUser = currentUser;
 
         randomString = new RandomString(defaultPasswordLength, RandomString.Strategy.ENGLISH_CHARS_WITH_SPECIAL_CHARS);
         this.emailPrepareAndSendService = emailPrepareAndSendService;
@@ -100,16 +99,16 @@ public class PasswordResetRepository {
         emailPrepareAndSendService.sendResetPassword(resetPasswordTokenDao);
     }
 
-    public PasswordResetDTO unsafeResetPassword(UserAccount userPosted) {
+    public PasswordResetDTO unsafeResetPassword(UserAccount userPosted, CurrentUserCtx ctx) {
         String password = randomString.nextString();
 
         PasswordEncodeRequest passwordEncodeRequest = new PasswordEncodeRequest();
         passwordEncodeRequest.setPassword(password);
         userPosted.setPassword(encoder.encode(passwordEncodeRequest.getPassword()));
 
-        UserAccount oldUserAccount = userAccountRepository.findByUserId(userPosted.getId()).block();
+        UserAccount oldUserAccount = userAccountRepository.findByUserId(userPosted.getId(), ctx).block();
 
-        if (!currentUser.getDomain().getDomain().equals(oldUserAccount.getDomain())) {
+        if (!ctx.getDomain().getDomain().equals(oldUserAccount.getDomain())) {
             ThrowExceptionHelper.throwExceptionInvalidRequest("ACCESS DENY");
         }
         oldUserAccount.setPassword(userPosted.getPassword());
