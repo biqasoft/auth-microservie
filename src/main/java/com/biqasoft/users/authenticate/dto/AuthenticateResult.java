@@ -33,6 +33,7 @@ public class AuthenticateResult implements Serializable {
     // current authenticated user domain
     private Domain domain;
 
+    @Deprecated(forRemoval = true)
     // current authenticated user domain settings
     private DomainSettings domainSettings;
 
@@ -45,10 +46,12 @@ public class AuthenticateResult implements Serializable {
         this.domain = domain;
     }
 
+    @Deprecated(forRemoval = true)
     public DomainSettings getDomainSettings() {
         return domainSettings;
     }
 
+    @Deprecated(forRemoval = true)
     public void setDomainSettings(DomainSettings domainSettings) {
         this.domainSettings = domainSettings;
     }

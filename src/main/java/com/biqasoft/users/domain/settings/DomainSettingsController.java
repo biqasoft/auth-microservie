@@ -23,6 +23,7 @@ import java.security.Principal;
 @RestController
 @Api("Control domains")
 @RequestMapping("/v1/domain_settings")
+@Deprecated(forRemoval = true)
 public class DomainSettingsController {
 
     private final DomainSettingsRepository domainSettingsRepository;
