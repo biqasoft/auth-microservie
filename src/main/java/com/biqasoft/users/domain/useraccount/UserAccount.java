@@ -6,59 +6,36 @@
 
  */
 
-package com.biqasoft.users.useraccount;
+package com.biqasoft.users.domain.useraccount;
 
-import com.biqasoft.entity.core.GlobalStoredBaseClass;
-import com.biqasoft.users.domain.useraccount.PersonalSettings;
-import com.biqasoft.users.domain.useraccount.UserAccountGroup;
-import com.biqasoft.users.oauth2.UserAccountOAuth2;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.biqasoft.entity.core.BaseClass;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.javers.core.metamodel.annotation.DiffIgnore;
-import org.springframework.data.mongodb.core.index.IndexDirection;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.index.TextIndexed;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 @ApiModel("This is main user account object")
-public class UserAccount extends GlobalStoredBaseClass {
+public class UserAccount extends BaseClass {
 
-    @Indexed(unique = true, direction = IndexDirection.DESCENDING, dropDups = true)
-    @TextIndexed
     @ApiModelProperty("Username - login")
     private String username;
 
-    @DiffIgnore
-    @JsonIgnore
-    private String password;
-
     @ApiModelProperty("telephone")
-//    @Indexed(unique = true, direction = IndexDirection.DESCENDING, dropDups = true)
-    @Indexed(dropDups = true, unique = true, sparse = true, name = "telephone")
     private String telephone;
 
     // just some user defined variables
-    @TextIndexed
     private String firstname;
 
-    @TextIndexed
     private String lastname;
 
-    @TextIndexed
     private String patronymic;
 
-    @TextIndexed
     private String position;
 
     @ApiModelProperty(value = "user email", notes = " by default this is username")
-    @TextIndexed
     private String email;
 
     // spring security
@@ -80,10 +57,6 @@ public class UserAccount extends GlobalStoredBaseClass {
     @ApiModelProperty(value = "last online user date", notes = "This is sent by client using GET `/myaccount/setOnline` API call")
     private Date lastOnline;
 
-    @JsonIgnore
-    @DiffIgnore
-    private List<UserAccountOAuth2> oAuth2s = new ArrayList<>();
-
     private List<UserAccountGroup> groups = new ArrayList<>();
 
     @ApiModelProperty("User language")
@@ -92,30 +65,22 @@ public class UserAccount extends GlobalStoredBaseClass {
     @ApiModelProperty("List of roles including roles from group and personal group ")
     private List<String> effectiveRoles = new ArrayList<>();
 
+    @ApiModelProperty(value = "Pattern for allowed IP address to authentificate")
+    private String ipPattern = null;
+
+    @ApiModelProperty(value = "Does Two step auth enabled")
+    private boolean twoStepEnabled;
+
     @ApiModelProperty("List of domains in which user is invited")
     private List<String> domains = new ArrayList<>();
 
-    private String twoStepCode;
-    private boolean twoStepActivated;
 
-    public boolean isTwoStepActivated() {
-        return twoStepActivated;
+    public boolean isTwoStepEnabled() {
+        return twoStepEnabled;
     }
 
-    public void setTwoStepActivated(boolean twoStepActivated) {
-        this.twoStepActivated = twoStepActivated;
-    }
-
-    public String getTwoStepCode() {
-        return twoStepCode;
-    }
-
-    public void setTwoStepCode(String twoStepCode) {
-        this.twoStepCode = twoStepCode;
-    }
-
-    public void setEffectiveRoles(List<String> effectiveRoles) {
-        this.effectiveRoles = effectiveRoles;
+    public void setTwoStepEnabled(boolean twoStepEnabled) {
+        this.twoStepEnabled = twoStepEnabled;
     }
 
     public List<String> getDomains() {
@@ -126,6 +91,14 @@ public class UserAccount extends GlobalStoredBaseClass {
         this.domains = domains;
     }
 
+    public String getTelephone() {
+        return telephone;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
     public String getLanguage() {
         return language;
     }
@@ -134,30 +107,12 @@ public class UserAccount extends GlobalStoredBaseClass {
         this.language = language;
     }
 
-    @JsonProperty("effectiveRoles")
     public List<String> getEffectiveRoles() {
-        List<String> effectiveRoles = new ArrayList<>();
-
-        if (!CollectionUtils.isEmpty(this.getGroups())) {
-            for (UserAccountGroup group : this.getGroups()) {
-
-                if (!group.isEnabled()) {
-                    continue;
-                }
-
-                if (CollectionUtils.isEmpty(group.getGrantedRoles())) {
-                    continue;
-                }
-
-                effectiveRoles.addAll(group.getGrantedRoles());
-            }
-        }
-
-        if (!CollectionUtils.isEmpty(this.getRoles())) {
-            effectiveRoles.addAll(this.getRoles());
-        }
-
         return effectiveRoles;
+    }
+
+    public void setEffectiveRoles(List<String> effectiveRoles) {
+        this.effectiveRoles = effectiveRoles;
     }
 
     public List<UserAccountGroup> getGroups() {
@@ -167,27 +122,6 @@ public class UserAccount extends GlobalStoredBaseClass {
     public void setGroups(List<UserAccountGroup> groups) {
         this.groups = groups;
     }
-
-    public String getTelephone() {
-        return telephone;
-    }
-
-    public void setTelephone(String telephone) {
-        this.telephone = telephone;
-    }
-
-    @JsonIgnore
-    public List<UserAccountOAuth2> getoAuth2s() {
-        return oAuth2s;
-    }
-
-    @JsonProperty("oAuth2s")
-    public void setoAuth2s(List<UserAccountOAuth2> oAuth2s) {
-        this.oAuth2s = oAuth2s;
-    }
-
-    @ApiModelProperty(value = "Pattern for allowed IP address to authentificate")
-    private String ipPattern = null;
 
     public Boolean getEnabled() {
         return enabled;
@@ -254,16 +188,6 @@ public class UserAccount extends GlobalStoredBaseClass {
         this.username = username;
     }
 
-    @JsonIgnore
-    public String getPassword() {
-        return password;
-    }
-
-    @JsonProperty("password")
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getFirstname() {
         return firstname;
     }
@@ -296,19 +220,6 @@ public class UserAccount extends GlobalStoredBaseClass {
         this.roles = roles;
     }
 
-    @JsonIgnore
-    public String getRolesCSV() {
-        StringBuilder sb = new StringBuilder();
-        for (Iterator<String> iter = this.getEffectiveRoles().iterator(); iter.hasNext(); ) {
-            sb.append(iter.next());
-            if (iter.hasNext()) {
-                sb.append(',');
-            }
-        }
-        return sb.toString();
-    }
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -333,6 +244,8 @@ public class UserAccount extends GlobalStoredBaseClass {
         return ipPattern != null ? ipPattern.equals(that.ipPattern) : that.ipPattern == null;
 
     }
+
+
 
     @Override
     public int hashCode() {

@@ -1,7 +1,7 @@
 package com.biqasoft.users.auth;
 
-import com.biqasoft.entity.core.Domain;
-import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.domain.Domain;
+import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.users.config.AuthServerInternalAuth;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,14 +11,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import static com.biqasoft.entity.core.CurrentUser.DEFAULT_DATE_FORMAT;
-import static com.biqasoft.entity.core.CurrentUser.DEFAULT_LANGUAGE;
-
 public class CurrentUserCtx implements CurrentUserContextProvider {
 
     private Domain domain;
     private DomainSettings domainSettings;
     private com.biqasoft.users.useraccount.UserAccount account;
+
+    private static final String DEFAULT_LANGUAGE = "en_US";
+    private static final String DEFAULT_DATE_FORMAT = "dd.MM.yyyy HH:mm";
 
     public CurrentUserCtx(AuthServerInternalAuth auth) {
         Locale.setDefault(new Locale(DEFAULT_LANGUAGE));
@@ -30,11 +30,6 @@ public class CurrentUserCtx implements CurrentUserContextProvider {
 
     @Override
     public com.biqasoft.users.useraccount.UserAccount getUserAccount() {
-        return account;
-    }
-
-    @Override
-    public com.biqasoft.users.useraccount.UserAccount getCurrentUser() {
         return account;
     }
 

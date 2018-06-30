@@ -4,7 +4,7 @@
 
 package com.biqasoft.users.domain.settings;
 
-import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.users.authenticate.AuthHelper;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;

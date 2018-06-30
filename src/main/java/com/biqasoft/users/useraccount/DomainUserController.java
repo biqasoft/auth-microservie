@@ -9,7 +9,7 @@
 package com.biqasoft.users.useraccount;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
-import com.biqasoft.entity.core.useraccount.PersonalSettings;
+import com.biqasoft.users.domain.useraccount.PersonalSettings;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
@@ -48,7 +48,7 @@ public class DomainUserController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "")
-    public Flux<com.biqasoft.entity.core.useraccount.UserAccount> findAllInDomainsUnsafe(Principal principal) {
+    public Flux<com.biqasoft.users.domain.useraccount.UserAccount> findAllInDomainsUnsafe(Principal principal) {
         return userAccountRepository.findAllUsersInDomain(AuthHelper.castFromPrincipal(principal)).map(UserAccountMapper::mapInternalToDto);
     }
 
@@ -72,19 +72,19 @@ public class DomainUserController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "id/{id}")
-    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> findUserById(@PathVariable("id") String id, Principal principal) {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> findUserById(@PathVariable("id") String id, Principal principal) {
         return userAccountRepository.findByUserId(id, AuthHelper.castFromPrincipal(principal)).map(UserAccountMapper::mapInternalToDto);
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "fulltext_search")
-    public Flux<com.biqasoft.entity.core.useraccount.UserAccount> search(@RequestBody UserSearchRequest searchRequest, Principal principal) {
+    public Flux<com.biqasoft.users.domain.useraccount.UserAccount> search(@RequestBody UserSearchRequest searchRequest, Principal principal) {
         return userAccountRepository.fullTextSearch(searchRequest, AuthHelper.castFromPrincipal(principal)).map(UserAccountMapper::mapInternalToDto);
     }
 
     @ApiOperation(value = "add new user")
     @PostMapping(value = "")
-    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> create(@RequestBody UserAccountAddRequestDTO userAccountAddRequest, Principal principal) throws Exception {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> create(@RequestBody UserAccountAddRequestDTO userAccountAddRequest, Principal principal) throws Exception {
         UserAccount userPosted = userAccountAddRequest.getUserAccount();
         userPosted.setDomain(AuthHelper.castFromPrincipal(principal).getDomain().getDomain());
 
@@ -99,7 +99,7 @@ public class DomainUserController {
     }
 
     @PutMapping
-    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> deleteUserAccount(@RequestBody UserAccount userPosted, Principal principal) throws Exception {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> deleteUserAccount(@RequestBody UserAccount userPosted, Principal principal) throws Exception {
         return userAccountRepository.updateUserAccountForCurrentDomain(userPosted, AuthHelper.castFromPrincipal(principal)).map(UserAccountMapper::mapInternalToDto);
     }
 

@@ -10,7 +10,7 @@ package com.biqasoft.users.useraccount;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.entity.constants.SystemRoles;
-import com.biqasoft.entity.core.Domain;
+import com.biqasoft.users.domain.Domain;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.domain.DomainRepository;
@@ -51,12 +51,12 @@ public class GlobalUserController {
     }
 
     @GetMapping
-    public Flux<com.biqasoft.entity.core.useraccount.UserAccount> findUnsafeFindAllUsers() {
+    public Flux<com.biqasoft.users.domain.useraccount.UserAccount> findUnsafeFindAllUsers() {
         return userAccountRepository.unsafeFindAllUsers().map(UserAccountMapper::mapInternalToDto);
     }
 
     @GetMapping(value = "id/{id}")
-    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> findUserById(@PathVariable("id") String id) {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> findUserById(@PathVariable("id") String id) {
         return userAccountRepository.unsafeFindUserById(id).map(UserAccountMapper::mapInternalToDto);
     }
 
@@ -107,12 +107,12 @@ public class GlobalUserController {
 
     @ApiOperation(value = "find user by username or oauth2 token ")
     @PostMapping(value = "find/username_or_oauth2_token")
-    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> create(@RequestBody UserAccountGet userAccountGet) {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> create(@RequestBody UserAccountGet userAccountGet) {
         return userAccountRepository.findByUsernameOrOAuthToken(userAccountGet.username).map(UserAccountMapper::mapInternalToDto);
     }
 
     @PutMapping
-    public Mono<com.biqasoft.entity.core.useraccount.UserAccount> updateUserAccount(@RequestBody com.biqasoft.entity.core.useraccount.UserAccount userPosted) {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> updateUserAccount(@RequestBody com.biqasoft.users.domain.useraccount.UserAccount userPosted) {
         return userAccountRepository.unsafeUpdateUserAccount(UserAccountMapper.mapDtoToInternal(userPosted)).map(UserAccountMapper::mapInternalToDto);
     }
 
@@ -134,7 +134,7 @@ public class GlobalUserController {
     }
 
     static class CreatedUserDto {
-        private com.biqasoft.entity.core.useraccount.UserAccount userAccount;
+        private com.biqasoft.users.domain.useraccount.UserAccount userAccount;
 
         // do not add @JsonIgnore
         private String password;
@@ -148,11 +148,11 @@ public class GlobalUserController {
             this.domain = domain;
         }
 
-        public com.biqasoft.entity.core.useraccount.UserAccount getUserAccount() {
+        public com.biqasoft.users.domain.useraccount.UserAccount getUserAccount() {
             return userAccount;
         }
 
-        public void setUserAccount(com.biqasoft.entity.core.useraccount.UserAccount userAccount) {
+        public void setUserAccount(com.biqasoft.users.domain.useraccount.UserAccount userAccount) {
             this.userAccount = userAccount;
         }
 

@@ -1,6 +1,6 @@
 package com.biqasoft.users.auth;
 
-import com.biqasoft.entity.core.useraccount.UserAccount;
+import com.biqasoft.users.domain.useraccount.UserAccount;
 
 import java.util.List;
 import java.util.stream.Collectors;

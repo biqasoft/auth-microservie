@@ -1,6 +1,6 @@
 package com.biqasoft.users.auth;
 
-import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.users.domain.settings.DomainSettingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -4,8 +4,8 @@
 
 package com.biqasoft.users.authenticate.dto;
 
-import com.biqasoft.entity.core.Domain;
-import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.domain.Domain;
+import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.users.useraccount.UserAccount;
 
 import java.io.Serializable;

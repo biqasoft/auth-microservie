@@ -1,6 +1,6 @@
 package com.biqasoft.users.useraccount;
 
-import com.biqasoft.entity.core.useraccount.PersonalSettings;
+import com.biqasoft.users.domain.useraccount.PersonalSettings;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import reactor.core.publisher.Flux;

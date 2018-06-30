@@ -4,8 +4,8 @@
 
 package com.biqasoft.users.auth;
 
-import com.biqasoft.entity.core.Domain;
-import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.domain.Domain;
+import com.biqasoft.users.domain.DomainSettings;
 
 import java.util.Date;
 
@@ -16,9 +16,6 @@ import java.util.Date;
 public interface CurrentUserContextProvider {
 
     com.biqasoft.users.useraccount.UserAccount getUserAccount();
-
-    @Deprecated(forRemoval = true)
-    com.biqasoft.users.useraccount.UserAccount getCurrentUser();
 
     DomainSettings getDomainSettings();
 

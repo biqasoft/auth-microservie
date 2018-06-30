@@ -33,7 +33,7 @@ public class UserSecondFactorService {
      * @param code - if 2FA is enabled and user want to disable it
      */
     public void tryToChange2FactorMode(boolean newMode, String code, CurrentUserCtx ctx) {
-        UserAccount byUserId = userAccountRepository.findByUserId(ctx.getCurrentUser().getId(), ctx).block();
+        UserAccount byUserId = userAccountRepository.findByUserId(ctx.getUserAccount().getId(), ctx).block();
 
         if (byUserId.isTwoStepActivated() != newMode) {
             if (newMode) {
@@ -88,14 +88,14 @@ public class UserSecondFactorService {
     public SecondFactorResponseDTO generateSecret2FactorForUser(CurrentUserCtx ctx) {
         SecondFactorResponseDTO secondFactorResponseDTO = new SecondFactorResponseDTO();
 
-        UserAccount currentUserObj = ctx.getCurrentUser();
+        UserAccount currentUserObj = ctx.getUserAccount();
         String base32Secret = generateBase32Secret();
 
         // generate the QR code
         String imageUrl = TimeBasedOneTimePasswordUtil.qrImageUrl(currentUserObj.getUsername(), base32Secret);
 
         // we can use the code here and compare it against user input
-        UserAccount byUserId = userAccountRepository.findByUserId(ctx.getCurrentUser().getId(), ctx).block();
+        UserAccount byUserId = userAccountRepository.findByUserId(ctx.getUserAccount().getId(), ctx).block();
         byUserId.setTwoStepCode(base32Secret);
         byUserId.setTwoStepActivated(false);
         userAccountRepository.unsafeUpdateUserAccount(byUserId);

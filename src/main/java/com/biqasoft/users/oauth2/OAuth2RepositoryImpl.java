@@ -4,11 +4,11 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
-import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
-import com.biqasoft.microservice.common.dto.OAuth2NewTokenRequest;
+import com.biqasoft.microservice.common.dto.oauth2.OAuth2NewTokenRequest;
 import com.biqasoft.microservice.database.MainReactiveDatabase;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
+import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.users.oauth2.application.OAuth2ApplicationRepository;
 import com.biqasoft.users.useraccount.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
@@ -54,7 +54,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
 
     @Override
     public Flux<UserAccountOAuth2> getCurrentUserTokens(CurrentUserCtx ctx) {
-        return userAccountRepository.findByUserId(ctx.getCurrentUser().getId(), ctx).flatMapIterable(userAccount -> {
+        return userAccountRepository.findByUserId(ctx.getUserAccount().getId(), ctx).flatMapIterable(userAccount -> {
             List<UserAccountOAuth2> tokens = new ArrayList<>(userAccount.getoAuth2s());
             tokens.forEach(x -> {
                 x.setAccessCode(null);
@@ -118,7 +118,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
             // check that only roles, that user have
             // he assign (delegate) to role of oauth token
             List<String> roles = request.getRoles().stream()
-                    .filter(x -> (ctx.getCurrentUser().getRoles().contains(x) || x.equals(SystemRoles.OAUTH_ALL_USER))).collect(Collectors.toList());
+                    .filter(x -> (ctx.getUserAccount().getRoles().contains(x) || x.equals(SystemRoles.OAUTH_ALL_USER))).collect(Collectors.toList());
 
             auth2.setRoles(roles);
             auth2.setEnabled(true);

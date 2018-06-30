@@ -8,7 +8,6 @@
 
 package com.biqasoft.users.domain;
 
-import com.biqasoft.entity.core.Domain;
 import com.biqasoft.users.authenticate.AuthHelper;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;

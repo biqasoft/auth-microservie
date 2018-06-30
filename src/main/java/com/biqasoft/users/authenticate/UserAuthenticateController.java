@@ -8,8 +8,8 @@
 
 package com.biqasoft.users.authenticate;
 
-import com.biqasoft.entity.core.Domain;
-import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.domain.Domain;
+import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.AuthenticateResult;

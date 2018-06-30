@@ -18,9 +18,12 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@ComponentScan(value = "com.biqasoft", excludeFilters = {@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.biqasoft.entity")})
+@ComponentScan(value = "com.biqasoft", excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.biqasoft.entity"),
+        @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.biqasoft.auth.GatewayAuthenticationProvider")})
 @EnableAspectJAutoProxy
-@EnableAutoConfiguration(exclude = {MongoDataAutoConfiguration.class, WebMvcAutoConfiguration.class, SecurityAutoConfiguration.class, MongoReactiveDataAutoConfiguration.class
+@EnableAutoConfiguration(exclude = {
+        MongoDataAutoConfiguration.class, WebMvcAutoConfiguration.class, SecurityAutoConfiguration.class, MongoReactiveDataAutoConfiguration.class
 //        ,        HttpHandlerAutoConfiguration.class}
 })
 @EnableMicroserviceCommunicator

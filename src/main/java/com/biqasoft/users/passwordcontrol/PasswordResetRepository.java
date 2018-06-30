@@ -6,7 +6,6 @@ package com.biqasoft.users.passwordcontrol;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
-import com.biqasoft.entity.core.CurrentUser;
 import com.biqasoft.microservice.database.MainDatabase;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;

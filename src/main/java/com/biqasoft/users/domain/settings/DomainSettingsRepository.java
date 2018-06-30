@@ -4,7 +4,7 @@
 
 package com.biqasoft.users.domain.settings;
 
-import com.biqasoft.entity.core.DomainSettings;
+import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.microservice.database.MainDatabase;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import org.springframework.beans.factory.annotation.Autowired;

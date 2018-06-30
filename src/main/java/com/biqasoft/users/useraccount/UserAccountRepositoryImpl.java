@@ -6,8 +6,8 @@ import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.annotations.BiqaAuditObject;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
-import com.biqasoft.entity.core.useraccount.PersonalSettings;
-import com.biqasoft.entity.core.useraccount.UserAccountGroup;
+import com.biqasoft.users.domain.useraccount.PersonalSettings;
+import com.biqasoft.users.domain.useraccount.UserAccountGroup;
 import com.biqasoft.microservice.database.MainReactiveDatabase;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
@@ -57,7 +57,7 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
      * @throws Exception
      */
     private void checkDomainRolesPermission(UserAccount userAccount, CurrentUserCtx ctx) throws Exception {
-        List<String> currentUserRoles = ctx.getCurrentUser().getRoles();
+        List<String> currentUserRoles = ctx.getUserAccount().getRoles();
         if (!currentUserRoles.contains(SystemRoles.ROLE_ADMIN) && !currentUserRoles.contains(SystemRoles.ROOT_USER)) {
             if (userAccount.getRoles().contains(SystemRoles.ROLE_ADMIN)) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.grant.role.admin.error");
@@ -185,14 +185,14 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
 
     @Override
     public Mono<Void> setCurrentUserOnline(CurrentUserCtx ctx) {
-        Query query = new Query(Criteria.where("id").is(ctx.getCurrentUser().getId()));
+        Query query = new Query(Criteria.where("id").is(ctx.getUserAccount().getId()));
         Update update = new Update().set("lastOnline", new Date());
         return ops.findAndModify(query, update, UserAccount.class).flatMap(x -> Mono.empty());
     }
 
     @Override
     public Mono<Void> setCurrentUserPersonalSettings(PersonalSettings personalSettings, CurrentUserCtx ctx) {
-        Query query = new Query(Criteria.where("id").is(ctx.getCurrentUser().getId()));
+        Query query = new Query(Criteria.where("id").is(ctx.getUserAccount().getId()));
         Update update = new Update().set("personalSettings", personalSettings);
         return ops.findAndModify(query, update, UserAccount.class).flatMap(x -> Mono.empty());
     }

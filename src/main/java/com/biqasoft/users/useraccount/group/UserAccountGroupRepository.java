@@ -8,7 +8,7 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.annotations.BiqaAuditObject;
 import com.biqasoft.entity.constants.SystemRoles;
-import com.biqasoft.entity.core.useraccount.UserAccountGroup;
+import com.biqasoft.users.domain.useraccount.UserAccountGroup;
 import com.biqasoft.microservice.database.MongoTenantHelper;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.useraccount.UserAccount;
@@ -50,8 +50,8 @@ public class UserAccountGroupRepository {
      */
     private void checkRolesPermission(UserAccountGroup userAccountGroup, CurrentUserCtx ctx) {
 
-        if (!ctx.getCurrentUser().getRoles().contains(SystemRoles.ROLE_ADMIN) &&
-                !ctx.getCurrentUser().getRoles().contains(SystemRoles.ROOT_USER)) {
+        if (!ctx.getUserAccount().getRoles().contains(SystemRoles.ROLE_ADMIN) &&
+                !ctx.getUserAccount().getRoles().contains(SystemRoles.ROOT_USER)) {
             if (userAccountGroup.getGrantedRoles().contains(SystemRoles.ROLE_ADMIN)) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.invalid.only_admin_can_grant_role_admin");
             }

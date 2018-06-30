@@ -4,7 +4,7 @@
 
 package com.biqasoft.users.oauth2.application;
 
-import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
+import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.oauth2.OAuth2Repository;
 import com.biqasoft.users.oauth2.UserAccountOAuth2;

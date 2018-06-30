@@ -6,8 +6,6 @@ package com.biqasoft.users.domain;
 
 import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
-import com.biqasoft.entity.core.Domain;
-import com.biqasoft.entity.core.DomainSettings;
 import com.biqasoft.microservice.database.MainDatabase;
 import com.biqasoft.microservice.database.MongoTenantHelper;
 import com.biqasoft.users.auth.CurrentUserCtx;

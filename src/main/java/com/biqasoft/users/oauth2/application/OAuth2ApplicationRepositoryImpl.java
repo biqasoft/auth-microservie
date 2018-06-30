@@ -9,7 +9,7 @@ import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
-import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
+import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.microservice.database.MainReactiveDatabase;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.config.SystemSettings;
@@ -87,7 +87,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
 
         systemSettings.setSystemOAuthApplicationId(application.getId());
 
-        ops.save(systemSettings);
+        ops.save(systemSettings).block();
         this.systemSettings = systemSettings;
         this.systemOAuthApplication = application;
     }
@@ -106,7 +106,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
         String secretCode = oauthTokenRandomString.nextString();
         application.setSecretCode(secretCode);
 
-        ops.insert(application);
+        ops.insert(application).block();
         return application;
     }
 
@@ -131,7 +131,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
     @Override
     public Mono<Boolean> deleteOauthApplicationById(String id, CurrentUserCtx ctx) {
         return ops.findOne(Query.query(Criteria.where("id").is(id)), OAuth2Application.class).flatMap(application -> {
-            if (!application.getCreatedInfo().getCreatedById().equals(ctx.getCurrentUser().getId())) {
+            if (!application.getCreatedInfo().getCreatedById().equals(ctx.getUserAccount().getId())) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
             }
             return ops.remove(application).map(res -> res.getDeletedCount() > 0);
@@ -160,7 +160,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
             }
 
-            if (!oAuth2Application.getCreatedInfo().getCreatedById().equals(ctx.getCurrentUser().getId())) {
+            if (!oAuth2Application.getCreatedInfo().getCreatedById().equals(ctx.getUserAccount().getId())) {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.modify.only_creator_can");
             }
 
@@ -180,7 +180,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
     public Mono<SampleDataResponse> getSecretCodeForOAuthApplication(OAuth2Application application, CurrentUserCtx ctx) {
         SampleDataResponse response = new SampleDataResponse();
 
-        if (!application.getCreatedInfo().getCreatedById().equals(ctx.getCurrentUser().getId())) {
+        if (!application.getCreatedInfo().getCreatedById().equals(ctx.getUserAccount().getId())) {
             ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.secret_code.only_creator_can");
         }
 

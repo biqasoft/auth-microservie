@@ -5,7 +5,7 @@
 package com.biqasoft.users.useraccount.group;
 
 import com.biqasoft.entity.constants.SystemRoles;
-import com.biqasoft.entity.core.useraccount.UserAccountGroup;
+import com.biqasoft.users.domain.useraccount.UserAccountGroup;
 import com.biqasoft.users.authenticate.AuthHelper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

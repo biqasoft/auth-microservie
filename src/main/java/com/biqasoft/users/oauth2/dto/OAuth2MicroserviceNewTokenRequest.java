@@ -1,7 +1,7 @@
 package com.biqasoft.users.oauth2.dto;
 
-import com.biqasoft.entity.core.useraccount.oauth2.OAuth2Application;
-import com.biqasoft.microservice.common.dto.OAuth2NewTokenRequest;
+import com.biqasoft.microservice.common.dto.oauth2.OAuth2NewTokenRequest;
+import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.users.useraccount.UserAccount;
 
 public class OAuth2MicroserviceNewTokenRequest {

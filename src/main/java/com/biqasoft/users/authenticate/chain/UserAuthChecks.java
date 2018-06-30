@@ -1,6 +1,6 @@
 package com.biqasoft.users.authenticate.chain;
 
-import com.biqasoft.entity.core.Domain;
+import com.biqasoft.users.domain.Domain;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
