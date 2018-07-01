@@ -24,7 +24,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAspectJAutoProxy
 @EnableAutoConfiguration(exclude = {
         MongoDataAutoConfiguration.class, WebMvcAutoConfiguration.class, SecurityAutoConfiguration.class, MongoReactiveDataAutoConfiguration.class
-//        ,        HttpHandlerAutoConfiguration.class}
 })
 @EnableMicroserviceCommunicator
 @EnableScheduling

@@ -4,20 +4,16 @@
 
 package com.biqasoft.users.passwordcontrol.dto;
 
+import lombok.Data;
+
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/25/2016
  *         All Rights Reserved
  */
+@Data
 public class PasswordEncodeResponse {
 
     private String password;
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }

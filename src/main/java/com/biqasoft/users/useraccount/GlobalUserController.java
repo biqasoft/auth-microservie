@@ -8,18 +8,13 @@
 
 package com.biqasoft.users.useraccount;
 
-import com.biqasoft.common.exceptions.ThrowExceptionHelper;
-import com.biqasoft.entity.constants.SystemRoles;
-import com.biqasoft.users.domain.Domain;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.AuthHelper;
-import com.biqasoft.users.domain.DomainRepository;
-import com.biqasoft.users.notifications.EmailPrepareAndSendService;
-import com.biqasoft.users.useraccount.dto.CreatedUser;
-import com.biqasoft.users.useraccount.dto.UserAccountAddRequestDTO;
-import com.google.common.collect.Lists;
+import com.biqasoft.users.domain.Domain;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -40,14 +35,10 @@ import java.security.Principal;
 public class GlobalUserController {
 
     private final UserAccountRepository userAccountRepository;
-    private final DomainRepository domainRepository;
-    private final EmailPrepareAndSendService emailPrepareAndSendService;
 
     @Autowired
-    public GlobalUserController(UserAccountRepository userAccountRepository, DomainRepository domainRepository, EmailPrepareAndSendService emailPrepareAndSendService) {
+    public GlobalUserController(UserAccountRepository userAccountRepository) {
         this.userAccountRepository = userAccountRepository;
-        this.domainRepository = domainRepository;
-        this.emailPrepareAndSendService = emailPrepareAndSendService;
     }
 
     @GetMapping
@@ -69,42 +60,6 @@ public class GlobalUserController {
         return null;
     }
 
-    @ApiOperation(value = "register new user in new domain with admin role")
-    @PostMapping(value = "register")
-    public CreatedUserDto register(@RequestBody UserAccountAddRequestDTO userAccountAddRequest, Principal principal) throws Exception {
-
-        // user with same email already exist
-        if (userAccountRepository.findByUsernameOrOAuthToken(userAccountAddRequest.getUserAccount().getEmail()) != null) {
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.create.username.already.exists");
-        }
-
-        Domain domain = domainRepository.addDomain(null);
-
-        // create new admin account
-        UserAccount user = new UserAccount();
-
-        user.setTelephone(userAccountAddRequest.getUserAccount().getTelephone());
-        user.setUsername(userAccountAddRequest.getUserAccount().getEmail());
-        user.setFirstname(userAccountAddRequest.getUserAccount().getFirstname());
-        user.setLastname(userAccountAddRequest.getUserAccount().getLastname());
-        user.setEmail(userAccountAddRequest.getUserAccount().getEmail());
-
-        user.setRoles(Lists.newArrayList(SystemRoles.ROLE_ADMIN, SystemRoles.ALLOW_ALL_DOMAIN_BASED));
-        user.setDomain(domain.getDomain());
-
-        CreatedUser createdUserInternal = userAccountRepository.registerNewUser(user, AuthHelper.castFromPrincipal(principal)).block();
-
-        CreatedUserDto response = new CreatedUserDto();
-        response.setDomain(createdUserInternal.getDomain());
-        response.setPassword(createdUserInternal.getPassword());
-        response.setUserAccount(UserAccountMapper.mapInternalToDto(createdUserInternal.getUserAccount()));
-
-        if (userAccountAddRequest.isSendWelcomeEmail()) {
-            emailPrepareAndSendService.sendWelcomeEmailWhenCreateNewDomain(createdUserInternal.getUserAccount(), createdUserInternal.getPassword());
-        }
-        return response;
-    }
-
     @ApiOperation(value = "find user by username or oauth2 token ")
     @PostMapping(value = "find/username_or_oauth2_token")
     public Mono<com.biqasoft.users.domain.useraccount.UserAccount> create(@RequestBody UserAccountGet userAccountGet) {
@@ -122,17 +77,12 @@ public class GlobalUserController {
     }
 
 
+    @Data
     static class UserAccountGet {
         public String username;
-
-        public UserAccountGet(String username) {
-            this.username = username;
-        }
-
-        public UserAccountGet() {
-        }
     }
 
+    @Data
     static class CreatedUserDto {
         private com.biqasoft.users.domain.useraccount.UserAccount userAccount;
 
@@ -140,29 +90,6 @@ public class GlobalUserController {
         private String password;
         private String domain;
 
-        public String getDomain() {
-            return domain;
-        }
-
-        public void setDomain(String domain) {
-            this.domain = domain;
-        }
-
-        public com.biqasoft.users.domain.useraccount.UserAccount getUserAccount() {
-            return userAccount;
-        }
-
-        public void setUserAccount(com.biqasoft.users.domain.useraccount.UserAccount userAccount) {
-            this.userAccount = userAccount;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
     }
 
 }

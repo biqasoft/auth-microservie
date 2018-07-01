@@ -20,10 +20,10 @@ import java.security.Principal;
  *         Date: 10/5/2015
  *         All Rights Reserved
  */
+@Deprecated(forRemoval = true)
 @RestController
 @Api("Control domains")
 @RequestMapping("/v1/domain_settings")
-@Deprecated(forRemoval = true)
 public class DomainSettingsController {
 
     private final DomainSettingsRepository domainSettingsRepository;

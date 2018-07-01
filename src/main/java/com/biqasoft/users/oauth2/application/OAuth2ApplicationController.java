@@ -76,9 +76,9 @@ public class OAuth2ApplicationController {
     @PreAuthorize("isAuthenticated()")
     @ApiOperation(value = "get application secret code by oauth application by id", notes = "Only user who create application can access this operation")
     @RequestMapping("{id}/secret_code")
-    public Mono<SampleDataResponse> getSecretCodeForOAuthApplication(@PathVariable("id") String id, Principal principal) {
-        return oAuth2ApplicationRepositoryRepository.getSecretCodeForOAuthApplication(
-                oAuth2ApplicationRepositoryRepository.findOauthApplicationById(id).block(), AuthHelper.castFromPrincipal(principal));
+    public Mono<SampleDataResponseDto> getSecretCodeForOAuthApplication(@PathVariable("id") String id, Principal principal) {
+        return oAuth2ApplicationRepositoryRepository.findOauthApplicationById(id)
+                .flatMap(x -> oAuth2ApplicationRepositoryRepository.getSecretCodeForOAuthApplication(x, AuthHelper.castFromPrincipal(principal)));
     }
 
     @RequestMapping(value = "obtain_access_code/{code}", method = RequestMethod.POST)

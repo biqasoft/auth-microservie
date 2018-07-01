@@ -4,38 +4,17 @@
 
 package com.biqasoft.users.authenticate.dto;
 
+import lombok.Data;
+
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/25/2016
  *         All Rights Reserved
  */
+@Data
 public class UserNameWithPassword {
     public String username;
     public String password;
     public String twoStepCode;
 
-
-    public String getTwoStepCode() {
-        return twoStepCode;
-    }
-
-    public void setTwoStepCode(String twoStepCode) {
-        this.twoStepCode = twoStepCode;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }

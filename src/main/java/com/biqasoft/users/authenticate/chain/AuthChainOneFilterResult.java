@@ -1,10 +1,12 @@
 package com.biqasoft.users.authenticate.chain;
 
-import com.biqasoft.users.authenticate.dto.AuthenticateResult;
+import com.biqasoft.users.authenticate.dto.AuthenticateResultDto;
+import lombok.Data;
 
 /**
  * Data object for authenticate result by {@link AuthChainFilter}
  */
+@Data
 public class AuthChainOneFilterResult {
 
     // true - if processing must be interrupted.
@@ -16,30 +18,6 @@ public class AuthChainOneFilterResult {
     private boolean isSuccessProcessed;
 
     // result of processing by filter
-    private AuthenticateResult authenticateResult = new AuthenticateResult();
+    private AuthenticateResultDto authenticateResult = new AuthenticateResultDto();
 
-    public AuthenticateResult getAuthenticateResult() {
-        return authenticateResult;
-    }
-
-    public void setAuthenticateResult(AuthenticateResult authenticateResult) {
-        this.authenticateResult = authenticateResult;
-    }
-
-    public boolean isSuccessProcessed() {
-        return isSuccessProcessed;
-    }
-
-    public void setSuccessProcessed(boolean successProcessed) {
-        isSuccessProcessed = successProcessed;
-    }
-
-
-    public boolean isForceReturn() {
-        return forceReturn;
-    }
-
-    public void setForceReturn(boolean forceReturn) {
-        this.forceReturn = forceReturn;
-    }
 }

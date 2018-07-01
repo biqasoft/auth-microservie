@@ -8,15 +8,17 @@
 
 package com.biqasoft.users.authenticate;
 
-import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
-import com.biqasoft.users.authenticate.dto.AuthenticateResult;
+import com.biqasoft.users.authenticate.dto.AuthenticateResultDto;
+import com.biqasoft.users.domain.Domain;
+import com.biqasoft.users.domain.DomainSettings;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.Data;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.security.Principal;
 
@@ -36,7 +38,7 @@ public class UserAuthenticateController {
 
     @ApiOperation(value = "auth")
     @PostMapping
-    public AuthenticateResult authenticateRequest(@RequestBody AuthenticateRequest authenticateRequest) {
+    public Mono<AuthenticateResultDto> authenticateRequest(@RequestBody AuthenticateRequest authenticateRequest) {
         return requestAuthenticateService.authenticateRequest(authenticateRequest);
     }
 
@@ -48,7 +50,6 @@ public class UserAuthenticateController {
         MeResponseDto me = new MeResponseDto();
         me.setAccount(currentUserCtx.getUserAccount());
         me.setDomain(currentUserCtx.getDomain());
-        me.setDomainSettings(currentUserCtx.getDomainSettings());
 
         return me;
     }
@@ -57,7 +58,7 @@ public class UserAuthenticateController {
     static class MeResponseDto {
         private Domain domain;
         private DomainSettings domainSettings;
-        private com.biqasoft.users.useraccount.UserAccount account;
+        private UserAccount account;
     }
 
 }

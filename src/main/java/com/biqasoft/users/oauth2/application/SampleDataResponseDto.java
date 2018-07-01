@@ -9,29 +9,17 @@
 package com.biqasoft.users.oauth2.application;
 
 import io.swagger.annotations.ApiModel;
+import lombok.Data;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
  * Date: 12/5/2015
  * All Rights Reserved
  */
+@Data
 @ApiModel("Common used DTO with one string field")
-public class SampleDataResponse {
+public class SampleDataResponseDto {
 
     private String data;
 
-    public SampleDataResponse(String data) {
-        this.data = data;
-    }
-
-    public SampleDataResponse() {
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
 }

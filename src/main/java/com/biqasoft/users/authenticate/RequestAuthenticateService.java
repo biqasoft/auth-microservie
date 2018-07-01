@@ -6,14 +6,12 @@ package com.biqasoft.users.authenticate;
 
 import com.biqasoft.users.authenticate.chain.AuthChainFilter;
 import com.biqasoft.users.authenticate.chain.AuthChainOneFilterResult;
-import com.biqasoft.users.authenticate.chain.UserAuthChecks;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
-import com.biqasoft.users.authenticate.dto.AuthenticateResult;
+import com.biqasoft.users.authenticate.dto.AuthenticateResultDto;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.AuthServerInternalAuth;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
-import com.biqasoft.users.domain.DomainRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,32 +27,28 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
+import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
- *         Date: 7/22/2016
- *         All Rights Reserved
+ * Date: 7/22/2016
+ * All Rights Reserved
  */
 @Service
 public class RequestAuthenticateService implements ServerSecurityContextRepository, ReactiveAuthenticationManager {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestAuthenticateService.class);
-    private final DomainRepository domainRepository;
 
     private final AuthFailedLimit authFailedLimit;
-
-    private final UserAuthChecks userAuthChecks;
-
-    private List<AuthChainFilter> authChainFilters;
+    private final List<AuthChainFilter> authChainFilters;
 
     @Autowired
-    public RequestAuthenticateService(DomainRepository domainRepository, AuthFailedLimit authFailedLimit, UserAuthChecks userAuthChecks, List<AuthChainFilter> authChainFilters) {
-        this.domainRepository = domainRepository;
+    public RequestAuthenticateService(AuthFailedLimit authFailedLimit, List<AuthChainFilter> authChainFilters) {
         this.authFailedLimit = authFailedLimit;
-        this.userAuthChecks = userAuthChecks;
 
-        if (CollectionUtils.isEmpty(authChainFilters)){
+        if (CollectionUtils.isEmpty(authChainFilters)) {
             throw new IllegalArgumentException("AuthChainFilter can not be empty");
         }
         this.authChainFilters = authChainFilters;
@@ -83,48 +77,48 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
         return authenticateRequest;
     }
 
-    public AuthenticateResult authenticateRequest(@NotNull AuthenticateRequest authenticateRequest) {
-        authenticateRequest = tryAuthenticateResponseAsToken(authenticateRequest);
-        authFailedLimit.checkAuthFailedLimit(authenticateRequest);
+    public Mono<AuthenticateResultDto> authenticateRequest(@NotNull AuthenticateRequest authRequest) {
+        return Mono.create(result -> {
+            AuthenticateRequest authenticateRequest = tryAuthenticateResponseAsToken(authRequest);
+            authFailedLimit.checkAuthFailedLimit(authenticateRequest);
 
-        for (AuthChainFilter authChainFilter : authChainFilters) {
-            AuthChainOneFilterResult process = authChainFilter.process(authenticateRequest);
-            if (process == null) {
-                continue;
-            }
-            if (process.isForceReturn()){
-                return process.getAuthenticateResult();
-            }
+            Iterator<AuthChainFilter> iterator = authChainFilters.iterator();
+            final boolean[] done = {false};
 
-            if (process.isSuccessProcessed()){
-                return process.getAuthenticateResult();
-            }
+            Function<AuthChainFilter, Mono<AuthChainOneFilterResult>> funcEmpToString = (AuthChainFilter next) ->
+                    Mono.create(m -> next.process(authenticateRequest)
+                            .doOnError(e -> result.error(e))
+                            .subscribe(process -> {
+                                if (process.isForceReturn()) {
+                                    result.success(process.getAuthenticateResult());
+                                    done[0] = true;
+                                }
 
-            // process by next filter
-            continue;
-        }
+                                if (process.isSuccessProcessed()) {
+                                    result.success(process.getAuthenticateResult());
+                                    done[0] = true;
+                                }
 
-        // todo
-        return null;
+                                m.success(process);
+                            }));
 
-//         TODO:
+            Function<Function, Void> doExecuteNext = (a) -> {
+                final AuthChainFilter[] next = {iterator.next()};
 
-//         else {
-
-
-
-//            if (!user.getRoles().isEmpty()) {
-//                auths = AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRolesCSV());
-//            } else {
-//                auths = AuthorityUtils.NO_AUTHORITIES;
-//            }
-
-            // if we auth with root password - add special role
-//        }
-
-
-//
-//        return response;
+                funcEmpToString.apply(next[0]).subscribe(m -> {
+                    if (!done[0]) {
+                        if (iterator.hasNext()) {
+                            next[0] = iterator.next();
+                            a.apply(a);
+                        } else {
+                            result.success();
+                        }
+                    }
+                });
+                return null;
+            };
+            doExecuteNext.apply(doExecuteNext);
+        });
     }
 
     @Override
@@ -137,16 +131,13 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
     public Mono<SecurityContext> load(ServerWebExchange serverWebExchange) {
 
         List<String> authorization = serverWebExchange.getRequest().getHeaders().get("Authorization");
-        if (authorization != null && authorization.size() == 1)  {
+        if (authorization != null && authorization.size() == 1) {
             AuthenticateRequest authenticateRequest = new AuthenticateRequest();
             authenticateRequest.setToken(authorization.get(0));
-            AuthenticateResult authenticateResult = this.authenticateRequest(authenticateRequest);
-            if (authenticateResult == null) {
-                return Mono.empty();
-            }
-
-            AuthServerInternalAuth authentication = new AuthServerInternalAuth(authenticateResult);
-            return Mono.just(new SecurityContextImpl(authentication));
+            return this.authenticateRequest(authenticateRequest).flatMap(authenticateResult -> {
+                AuthServerInternalAuth authentication = new AuthServerInternalAuth(authenticateResult);
+                return Mono.just(new SecurityContextImpl(authentication));
+            });
         }
         return Mono.empty();
     }

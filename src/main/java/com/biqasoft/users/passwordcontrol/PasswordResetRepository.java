@@ -12,7 +12,7 @@ import com.biqasoft.users.notifications.EmailPrepareAndSendService;
 import com.biqasoft.users.passwordcontrol.dto.PasswordEncodeRequest;
 import com.biqasoft.users.passwordcontrol.dto.PasswordResetDTO;
 import com.biqasoft.users.passwordcontrol.dto.ResetPasswordTokenDTO;
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;

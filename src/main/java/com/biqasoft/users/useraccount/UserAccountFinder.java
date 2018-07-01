@@ -3,6 +3,7 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.audit.object.BaseClassFinder;
 import com.biqasoft.entity.core.BaseClass;
 import com.biqasoft.microservice.database.MainDatabase;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoOperations;

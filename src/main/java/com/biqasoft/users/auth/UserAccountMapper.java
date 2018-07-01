@@ -2,6 +2,7 @@ package com.biqasoft.users.auth;
 
 import com.biqasoft.users.domain.useraccount.UserAccount;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
  */
 public class UserAccountMapper {
 
-    public static List<UserAccount> mapInternalToDto(List<com.biqasoft.users.useraccount.UserAccount> internalUser){
+    public static List<UserAccount> mapInternalToDto(List<com.biqasoft.users.useraccount.dbo.UserAccount> internalUser){
         return internalUser.stream().map(UserAccountMapper::mapInternalToDto).collect(Collectors.toList());
     }
 
@@ -19,7 +20,7 @@ public class UserAccountMapper {
      * @param msModel internal model
      * @return dto
      */
-    public static UserAccount mapInternalToDto(com.biqasoft.users.useraccount.UserAccount msModel){
+    public static UserAccount mapInternalToDto(com.biqasoft.users.useraccount.dbo.UserAccount msModel){
         UserAccount account = new UserAccount();
         account.setId(msModel.getId());
 
@@ -49,7 +50,7 @@ public class UserAccountMapper {
         account.setUsername(msModel.getUsername());
         account.setTwoStepEnabled(msModel.isTwoStepActivated());
 
-        account.setDomains(List.of(msModel.getDomain()));
+        account.setDomains(new ArrayList<>(msModel.getDomains()));
         return account;
     }
 
@@ -58,8 +59,8 @@ public class UserAccountMapper {
      * @param dtoModel dto
      * @return internal model
      */
-    public static com.biqasoft.users.useraccount.UserAccount mapDtoToInternal(UserAccount dtoModel){
-        com.biqasoft.users.useraccount.UserAccount msModel = new com.biqasoft.users.useraccount.UserAccount();
+    public static com.biqasoft.users.useraccount.dbo.UserAccount mapDtoToInternal(UserAccount dtoModel){
+        com.biqasoft.users.useraccount.dbo.UserAccount msModel = new com.biqasoft.users.useraccount.dbo.UserAccount();
         msModel.setId(dtoModel.getId());
 
         msModel.setFirstname(dtoModel.getFirstname());

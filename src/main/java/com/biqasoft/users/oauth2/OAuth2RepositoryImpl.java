@@ -10,7 +10,7 @@ import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
 import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.users.oauth2.application.OAuth2ApplicationRepository;
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

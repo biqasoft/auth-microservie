@@ -5,13 +5,15 @@
 package com.biqasoft.users.useraccount.dto;
 
 
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
+import lombok.Data;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 8/7/2016
  *         All Rights Reserved
  */
+@Data
 public class CreatedUser {
 
     private UserAccount userAccount;
@@ -20,27 +22,4 @@ public class CreatedUser {
     private String password;
     private String domain;
 
-    public String getDomain() {
-        return domain;
-    }
-
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public UserAccount getUserAccount() {
-        return userAccount;
-    }
-
-    public void setUserAccount(UserAccount userAccount) {
-        this.userAccount = userAccount;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }

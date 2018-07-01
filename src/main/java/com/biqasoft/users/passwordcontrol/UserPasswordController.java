@@ -12,7 +12,7 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.passwordcontrol.dto.PasswordResetDTO;
 import com.biqasoft.users.passwordcontrol.dto.ResetPasswordTokenDTO;
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;

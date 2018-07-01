@@ -13,10 +13,12 @@ import com.biqasoft.users.domain.useraccount.PersonalSettings;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.dto.TwoStepModifyRequest;
-import com.biqasoft.users.useraccount.dto.UserAccountAddRequestDTO;
+import com.biqasoft.users.useraccount.dto.UserAccountRegisterRequestDto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.Data;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -38,12 +40,12 @@ public class DomainUserController {
 
     private final UserAccountRepository userAccountRepository;
     private final EmailPrepareAndSendService emailPrepareAndSendService;
-    private final UserSecondFactorService userSecondFactorService;
+    private final User2FAService user2FAService;
 
-    public DomainUserController(UserAccountRepository userAccountRepository, EmailPrepareAndSendService emailPrepareAndSendService, UserSecondFactorService userSecondFactorService) {
+    public DomainUserController(UserAccountRepository userAccountRepository, EmailPrepareAndSendService emailPrepareAndSendService, User2FAService user2FAService) {
         this.userAccountRepository = userAccountRepository;
         this.emailPrepareAndSendService = emailPrepareAndSendService;
-        this.userSecondFactorService = userSecondFactorService;
+        this.user2FAService = user2FAService;
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -54,14 +56,14 @@ public class DomainUserController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "2step")
-    public UserSecondFactorService.SecondFactorResponseDTO twoStepAuth(Principal principal) {
-        return userSecondFactorService.generateSecret2FactorForUser(AuthHelper.castFromPrincipal(principal));
+    public Mono<User2FAService.SecondFactorResponseDTO> twoStepAuth(Principal principal) {
+        return user2FAService.generateSecret2FactorForUser(AuthHelper.castFromPrincipal(principal));
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "2step/modify")
-    public void twoStepAuth(@RequestBody TwoStepModifyRequest twoStepModifyRequest, Principal principal) {
-        userSecondFactorService.tryToChange2FactorMode(twoStepModifyRequest.isEnabled(), twoStepModifyRequest.getCode(), AuthHelper.castFromPrincipal(principal));
+    public Mono<Void> twoStepAuth(@RequestBody TwoStepModifyRequest twoStepModifyRequest, Principal principal) {
+        return user2FAService.tryToChange2FA(twoStepModifyRequest.isEnabled(), twoStepModifyRequest.getCode(), AuthHelper.castFromPrincipal(principal));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -84,18 +86,18 @@ public class DomainUserController {
 
     @ApiOperation(value = "add new user")
     @PostMapping(value = "")
-    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> create(@RequestBody UserAccountAddRequestDTO userAccountAddRequest, Principal principal) throws Exception {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> create(@RequestBody UserAccountRegisterRequestDto userAccountAddRequest, Principal principal) {
         UserAccount userPosted = userAccountAddRequest.getUserAccount();
         userPosted.setDomain(AuthHelper.castFromPrincipal(principal).getDomain().getDomain());
+        return userAccountRepository.createUserAccountInDomain(userPosted, userAccountAddRequest.getPassword(), AuthHelper.castFromPrincipal(principal))
+                .map(createdUser -> {
 
-        return userAccountRepository.createUserAccountInDomain(userPosted, userAccountAddRequest.getPassword(), AuthHelper.castFromPrincipal(principal)).map(createdUser -> {
+                    if (userAccountAddRequest.isSendWelcomeEmail()) {
+                        emailPrepareAndSendService.sendWelcomeEmailWhenAddNewUserToDomain(userPosted, createdUser.getPassword());
+                    }
 
-            if (userAccountAddRequest.isSendWelcomeEmail()) {
-                emailPrepareAndSendService.sendWelcomeEmailWhenAddNewUserToDomain(userPosted, createdUser.getPassword());
-            }
-
-            return UserAccountMapper.mapInternalToDto(createdUser.getUserAccount());
-        });
+                    return UserAccountMapper.mapInternalToDto(createdUser.getUserAccount());
+                });
     }
 
     @PutMapping
@@ -104,8 +106,8 @@ public class DomainUserController {
     }
 
     @PutMapping(value = "current_user/personal_settings")
-    public void deleteUserAccount(@RequestBody PersonalSettings personalSettings, Principal principal) {
-        userAccountRepository.setCurrentUserPersonalSettings(personalSettings, AuthHelper.castFromPrincipal(principal));
+    public Mono<Void> deleteUserAccount(@RequestBody PersonalSettings personalSettings, Principal principal) {
+        return userAccountRepository.setCurrentUserPersonalSettings(personalSettings, AuthHelper.castFromPrincipal(principal));
     }
 
     @DeleteMapping(value = "id/{id}")
@@ -120,18 +122,9 @@ public class DomainUserController {
         });
     }
 
-
-}
-
-class UserSearchRequest {
-    private String text;
-
-    public String getText() {
-        return text;
+    @Data
+    public static class UserSearchRequest {
+        private String text;
     }
 
-    public void setText(String text) {
-        this.text = text;
-    }
 }
-

@@ -5,7 +5,7 @@
 package com.biqasoft.users.auth;
 
 import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.domain.DomainSettings;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 
 import java.util.Date;
 
@@ -15,17 +15,13 @@ import java.util.Date;
  */
 public interface CurrentUserContextProvider {
 
-    com.biqasoft.users.useraccount.UserAccount getUserAccount();
-
-    DomainSettings getDomainSettings();
+    UserAccount getUserAccount();
 
     Domain getDomain();
 
-    void setUserAccount(com.biqasoft.users.useraccount.UserAccount userAccount);
+    void setUserAccount(UserAccount userAccount);
 
     void setDomain(Domain domain);
-
-    void setDomainSettings(DomainSettings domainSettings);
 
     String printWithDateFormat(Date date);
 

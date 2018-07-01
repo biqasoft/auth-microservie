@@ -5,13 +5,12 @@ import com.biqasoft.auth.internal.grpc.UsersGet;
 import com.biqasoft.auth.internal.grpc.UsersGrpc;
 import com.biqasoft.users.authenticate.RequestAuthenticateService;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
-import com.biqasoft.users.authenticate.dto.AuthenticateResult;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
+import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import io.grpc.stub.StreamObserver;
 
 /**
  * Created by ya on 3/2/2017.
@@ -39,18 +38,20 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
         UsersGet.UserAuthenticateResponse.Builder builder = UsersGet.UserAuthenticateResponse.newBuilder();
 
         try {
-            AuthenticateResult authenticateResult = authenticateService.authenticateRequest(authenticateRequest);
-            builder.setAuthenticated(authenticateResult.getAuthenticated());
+            authenticateService.authenticateRequest(authenticateRequest).subscribe(authenticateResult -> {
+                builder.setAuthenticated(authenticateResult.getAuthenticated());
 
-            if (authenticateResult.getAuths() != null && authenticateResult.getUserAccount() != null) {
-                builder.addAllAuths(authenticateResult.getAuths());
-                builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(authenticateResult.getUserAccount()));
-            }
+                if (authenticateResult.getAuths() != null && authenticateResult.getUserAccount() != null) {
+                    builder.addAllAuths(authenticateResult.getAuths());
+                    builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(authenticateResult.getUserAccount()));
+                }
+                responseObserver.onNext(builder.build());
+            });
         } catch (BiqaAuthenticationLocalizedException e) {
             builder.setError(e.getMessage());
             builder.setAuthenticated(false);
+            responseObserver.onNext(builder.build());
         }
-        responseObserver.onNext(builder.build());
     }
 
     @Override

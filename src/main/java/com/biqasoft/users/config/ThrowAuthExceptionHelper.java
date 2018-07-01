@@ -4,9 +4,9 @@
 
 package com.biqasoft.users.config;
 
+import com.biqasoft.common.exceptions.InvalidRequestLocalizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
@@ -19,7 +19,7 @@ public class ThrowAuthExceptionHelper {
     private final static Logger logger = LoggerFactory.getLogger(ThrowAuthExceptionHelper.class);
 
     /**
-     * Catched by {@link com.biqasoft.gateway.configs.exceptionhandler.MyExceptionHandler}
+     * Catched by
      *
      * @param messageId id of i18n property in resource folder
      */
@@ -27,8 +27,20 @@ public class ThrowAuthExceptionHelper {
         throw new BiqaAuthenticationLocalizedException(messageId);
     }
 
+    public static InvalidRequestLocalizedException throwJustExceptionBiqaAuthenticationLocalizedException(String messageId) throws BiqaAuthenticationLocalizedException {
+        return new InvalidRequestLocalizedException(messageId);
+    }
+
     public static Mono<BiqaAuthenticationLocalizedException> throwErrorReactiveBiqaAuthenticationLocalizedException(String messageId) {
-        return Mono.error(new BiqaAuthenticationLocalizedException(messageId));
+        return Mono.error(new InvalidRequestLocalizedException(messageId));
+    }
+
+    public static BiqaAuthenticationLocalizedException justErrorReactiveBiqaAuthenticationLocalizedException(String messageId) {
+        return new BiqaAuthenticationLocalizedException(messageId);
+    }
+
+    public static Mono throwErrorReactiveBiqaLocalizedException(String messageId) {
+        return Mono.error(new InvalidRequestLocalizedException(messageId));
     }
 
 }

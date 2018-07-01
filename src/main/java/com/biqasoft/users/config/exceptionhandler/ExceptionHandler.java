@@ -38,6 +38,7 @@ public class ExceptionHandler implements WebExceptionHandler {
                 o.writeValue(buffer.asOutputStream(), error);
 
                 response.setStatusCode(HttpStatus.UNPROCESSABLE_ENTITY);
+                response.getHeaders().add("Content-Type", "application/json");
                 return response.writeAndFlushWith(Mono.just(Mono.just(buffer))).flatMap(x -> Mono.empty());
             } catch (java.io.IOException e) {
                 e.printStackTrace();
@@ -54,6 +55,7 @@ public class ExceptionHandler implements WebExceptionHandler {
                 o.writeValue(buffer.asOutputStream(), error);
 
                 response.setStatusCode(HttpStatus.UNPROCESSABLE_ENTITY);
+                response.getHeaders().add("Content-Type", "application/json");
                 return response.writeAndFlushWith(Mono.just(Mono.just(buffer))).flatMap(x -> Mono.empty());
             } catch (java.io.IOException e) {
                 e.printStackTrace();
@@ -70,6 +72,7 @@ public class ExceptionHandler implements WebExceptionHandler {
                 o.writeValue(buffer.asOutputStream(), error);
 
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                response.getHeaders().add("Content-Type", "application/json");
                 return response.writeAndFlushWith(Mono.just(Mono.just(buffer))).flatMap(x -> Mono.empty());
             } catch (java.io.IOException e) {
                 e.printStackTrace();

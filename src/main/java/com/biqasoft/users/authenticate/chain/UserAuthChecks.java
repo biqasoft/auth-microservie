@@ -1,14 +1,13 @@
 package com.biqasoft.users.authenticate.chain;
 
-import com.biqasoft.users.domain.Domain;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.domain.Domain;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -94,9 +93,8 @@ public class UserAuthChecks {
             return true;
         } else {
             logger.info("Username {} invalid password", username);
-            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.invalid_password");
+            return false;
         }
-        throw new BadCredentialsException("");
     }
 
 }

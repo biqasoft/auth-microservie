@@ -1,7 +1,7 @@
 package com.biqasoft.users.grpc;
 
 import com.biqasoft.auth.internal.grpc.UserOuterClass;
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 
 class UsersToGrpcMapper {
 

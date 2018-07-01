@@ -1,6 +1,6 @@
 package com.biqasoft.users.config;
 
-import com.biqasoft.users.authenticate.dto.AuthenticateResult;
+import com.biqasoft.users.authenticate.dto.AuthenticateResultDto;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 
 public class AuthServerInternalAuth implements Authentication {
 
-    private AuthenticateResult authenticateResult;
+    private AuthenticateResultDto authenticateResult;
 
-    public AuthServerInternalAuth(AuthenticateResult authenticateResult) {
+    public AuthServerInternalAuth(AuthenticateResultDto authenticateResult) {
         this.authenticateResult = authenticateResult;
     }
 
@@ -53,7 +53,7 @@ public class AuthServerInternalAuth implements Authentication {
         return authenticateResult.getUserAccount().getUsername();
     }
 
-    public AuthenticateResult getAuthenticateResult() {
+    public AuthenticateResultDto getAuthenticateResult() {
         return authenticateResult;
     }
 }

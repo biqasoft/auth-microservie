@@ -11,7 +11,7 @@ import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.users.domain.useraccount.UserAccountGroup;
 import com.biqasoft.microservice.database.MongoTenantHelper;
 import com.biqasoft.users.auth.CurrentUserCtx;
-import com.biqasoft.users.useraccount.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import com.biqasoft.users.useraccount.UserAccountRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,8 @@
 package com.biqasoft.users.useraccount;
 
-import com.biqasoft.users.domain.useraccount.PersonalSettings;
 import com.biqasoft.users.auth.CurrentUserCtx;
+import com.biqasoft.users.domain.useraccount.PersonalSettings;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,9 +16,9 @@ public interface UserAccountRepository {
 
     Mono<UserAccount> findUserByOAuth2UserNameToken(String customUsername);
 
-    Mono<CreatedUser> registerNewUser(UserAccount userAccount, CurrentUserCtx ctx) throws Exception;
+    Mono<CreatedUser> registerNewUser(UserAccount userAccount) ;
 
-    Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password, CurrentUserCtx ctx) throws Exception;
+    Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password, CurrentUserCtx ctx);
 
         /**
          * Find user account by id only in current domain
@@ -95,5 +96,5 @@ public interface UserAccountRepository {
      */
     Mono<Void> deleteUserById(String id);
 
-    Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest, CurrentUserCtx ctx);
+    Flux<UserAccount> fullTextSearch(DomainUserController.UserSearchRequest searchRequest, CurrentUserCtx ctx);
 }

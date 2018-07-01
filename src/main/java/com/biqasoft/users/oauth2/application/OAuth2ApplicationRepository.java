@@ -28,6 +28,6 @@ public interface OAuth2ApplicationRepository {
 
     OAuth2Application getSystemOAuthApplication();
 
-    Mono<SampleDataResponse> getSecretCodeForOAuthApplication(OAuth2Application application, CurrentUserCtx ctx);
+    Mono<SampleDataResponseDto> getSecretCodeForOAuthApplication(OAuth2Application application, CurrentUserCtx ctx);
 
 }

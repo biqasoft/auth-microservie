@@ -1,18 +1,22 @@
 package com.biqasoft.users.authenticate.chain;
 
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
+import reactor.core.publisher.Mono;
 
 /**
- * Interface for different authentication type: e.g. username+password, OAuth2 token, LDAP/AD
+ * Interface for different authentication type: e.g. username+password, OAuth2 token, LDAP/AD.
+ * All instances of that interface are injected by {@link com.biqasoft.users.authenticate.RequestAuthenticateService}
  */
 public interface AuthChainFilter {
+
+    AuthChainOneFilterResult EMPTY_RESULT = new AuthChainOneFilterResult();
 
     /**
      * Process authentication by filter
      * @param authenticateRequest auth request
      * @return result of processing request by filter
      */
-    AuthChainOneFilterResult process(AuthenticateRequest authenticateRequest);
+    Mono<AuthChainOneFilterResult> process(AuthenticateRequest authenticateRequest);
 
     /**
      * @return Name of auth type

@@ -1,21 +1,22 @@
 package com.biqasoft.users.useraccount;
 
-import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.annotations.BiqaAuditObject;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
-import com.biqasoft.users.domain.useraccount.PersonalSettings;
-import com.biqasoft.users.domain.useraccount.UserAccountGroup;
 import com.biqasoft.microservice.database.MainReactiveDatabase;
 import com.biqasoft.users.auth.CurrentUserCtx;
+import com.biqasoft.users.config.ThrowAuthExceptionHelper;
+import com.biqasoft.users.domain.useraccount.PersonalSettings;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import com.biqasoft.users.useraccount.group.UserAccountGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.query.*;
+import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -51,23 +52,22 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
      * 1) ROLE_ADMIN OR
      * 2) ROLE_ROOT
      * <p>
-     * see {@link UserAccountGroupRepository#checkRolesPermission(UserAccountGroup)}
+     * see {@link UserAccountGroupRepository checkRolesPermission(UserAccountGroup)}
      *
      * @param userAccount
-     * @throws Exception
      */
-    private void checkDomainRolesPermission(UserAccount userAccount, CurrentUserCtx ctx) throws Exception {
+    private void checkDomainRolesPermission(UserAccount userAccount, CurrentUserCtx ctx) {
         List<String> currentUserRoles = ctx.getUserAccount().getRoles();
         if (!currentUserRoles.contains(SystemRoles.ROLE_ADMIN) && !currentUserRoles.contains(SystemRoles.ROOT_USER)) {
             if (userAccount.getRoles().contains(SystemRoles.ROLE_ADMIN)) {
-                ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.grant.role.admin.error");
+                ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("useraccount.grant.role.admin.error");
             }
         }
     }
 
-    private void checkSystemRolesPermission(UserAccount userAccount) throws Exception {
+    private void checkSystemRolesPermission(UserAccount userAccount) {
         if (userAccount.getRoles().contains(SystemRoles.ROOT_USER)) {
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.grant.role.root.error");
+            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("useraccount.grant.role.root.error");
         }
     }
 
@@ -78,24 +78,24 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
      */
     private void checkUserAccountRulesRequirements(UserAccount userAccount) {
         if (userAccount.getUsername().startsWith(AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.create.username.forbidden.symbols");
+            ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("useraccount.create.username.forbidden.symbols");
         }
     }
 
     @Override
-    public Mono<CreatedUser> registerNewUser(UserAccount userAccount, CurrentUserCtx ctx) throws Exception {
-        return create(userAccount, true, ctx);
+    public Mono<CreatedUser> registerNewUser(UserAccount userAccount) {
+        return create(userAccount, true, null);
     }
 
     @Override
     @BiqaAddObject
     @BiqaAuditObject
-    public Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password, CurrentUserCtx ctx) throws Exception {
+    public Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password, CurrentUserCtx ctx) {
         userAccount.setPassword(password); //dirty hack
         return create(userAccount, false, ctx);
     }
 
-    private Mono<CreatedUser> create(UserAccount userAccount, boolean anonymous, CurrentUserCtx ctx) throws Exception {
+    private Mono<CreatedUser> create(UserAccount userAccount, boolean anonymous, @Nullable CurrentUserCtx ctx) {
 
         if (anonymous) {
             checkSystemRolesPermission(userAccount);
@@ -104,33 +104,33 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
             checkDomainRolesPermission(userAccount, ctx);
         }
 
-        // duplicate username
-        if (findByUsernameOrOAuthToken(userAccount.getUsername()) != null) {
-            // this text of exception is used on client
-            // don't edit it
-            ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("useraccount.create.username.already.exists");
-        }
+        return findByUsernameOrOAuthToken(userAccount.getUsername())
+                .flatMap(x -> Mono.error(ThrowAuthExceptionHelper.throwJustExceptionBiqaAuthenticationLocalizedException("useraccount.create.username.already.exists")))
 
-        checkUserAccountRulesRequirements(userAccount);
+                // hack: map just to fix mono type
+                .map(x -> new CreatedUser())
+                .switchIfEmpty(Mono.defer(() -> {
+                    checkUserAccountRulesRequirements(userAccount);
 
-        if (StringUtils.isEmpty(userAccount.getPassword())) {
-            userAccount.setPassword(randomPassword.nextString());
-        }
+                    if (StringUtils.isEmpty(userAccount.getPassword())) {
+                        userAccount.setPassword(randomPassword.nextString());
+                    }
 
-        String clearTextPassword = userAccount.getPassword();
+                    String clearTextPassword = userAccount.getPassword();
 
-        userAccount.setPassword(passwordEncoder.encode(userAccount.getPassword()));
-        userAccount.setEnabled(true); // or false
-        userAccount.setStatus(UserAccount.UserAccountStatus.STATUS_APPROVED.name()); // or UserAccountStatus.STATUS_DISABLED
+                    userAccount.setPassword(passwordEncoder.encode(userAccount.getPassword()));
+                    userAccount.setEnabled(true); // or false
+                    userAccount.setStatus(UserAccount.UserAccountStatus.STATUS_APPROVED.name()); // or UserAccountStatus.STATUS_DISABLED
 
-        userAccount.setCreatedInfo(new CreatedInfo(new Date()));
-        return ops.insert(userAccount).map(x -> {
-            CreatedUser createdUser = new CreatedUser();
-            createdUser.setUserAccount(userAccount);
-            createdUser.setPassword(clearTextPassword);
-            createdUser.setDomain(userAccount.getDomain());
-            return createdUser;
-        });
+                    userAccount.setCreatedInfo(new CreatedInfo(new Date()));
+                    return ops.insert(userAccount).flatMap(x -> {
+                        CreatedUser createdUser = new CreatedUser();
+                        createdUser.setUserAccount(userAccount);
+                        createdUser.setPassword(clearTextPassword);
+                        createdUser.setDomain(userAccount.getDomain());
+                        return Mono.just(createdUser);
+                    });
+                }));
     }
 
     @Override
@@ -150,6 +150,7 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
         if (userName.startsWith(AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
             return findUserByOAuth2UserNameToken(userName);
         } else {
+//            return Mono. just(new UserAccount());
             return ops.findOne(Query.query(Criteria.where("username").is(userName)), UserAccount.class);
         }
     }
@@ -166,7 +167,7 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
 
     @Override
     @BiqaAuditObject
-    public Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount userAccount, CurrentUserCtx ctx) throws Exception {
+    public Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount userAccount, CurrentUserCtx ctx) {
         checkDomainRolesPermission(userAccount, ctx);
         findByUserId(userAccount.getId(), ctx).flatMap(oldUserAccount -> {
 
@@ -216,7 +217,7 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
     }
 
     @Override
-    public Flux<UserAccount> fullTextSearch(UserSearchRequest searchRequest, CurrentUserCtx ctx) {
+    public Flux<UserAccount> fullTextSearch(DomainUserController.UserSearchRequest searchRequest, CurrentUserCtx ctx) {
         TextCriteria criteria = TextCriteria.forDefaultLanguage().matching(searchRequest.getText());
         Criteria criteeria = Criteria.where("domain").is(ctx.getDomain().getDomain());
         Query query = TextQuery.queryText(criteria).sortByScore().addCriteria(criteeria);

@@ -1,8 +1,8 @@
 package com.biqasoft.users.auth;
 
 import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.domain.DomainSettings;
 import com.biqasoft.users.config.AuthServerInternalAuth;
+import com.biqasoft.users.useraccount.dbo.UserAccount;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -14,8 +14,7 @@ import java.util.Locale;
 public class CurrentUserCtx implements CurrentUserContextProvider {
 
     private Domain domain;
-    private DomainSettings domainSettings;
-    private com.biqasoft.users.useraccount.UserAccount account;
+    private UserAccount account;
 
     private static final String DEFAULT_LANGUAGE = "en_US";
     private static final String DEFAULT_DATE_FORMAT = "dd.MM.yyyy HH:mm";
@@ -24,18 +23,12 @@ public class CurrentUserCtx implements CurrentUserContextProvider {
         Locale.setDefault(new Locale(DEFAULT_LANGUAGE));
 
         domain = auth.getAuthenticateResult().getDomain();
-        domainSettings = auth.getAuthenticateResult().getDomainSettings();
         account = auth.getAuthenticateResult().getUserAccount();
     }
 
     @Override
-    public com.biqasoft.users.useraccount.UserAccount getUserAccount() {
+    public UserAccount getUserAccount() {
         return account;
-    }
-
-    @Override
-    public DomainSettings getDomainSettings() {
-        return domainSettings;
     }
 
     @Override
@@ -44,17 +37,12 @@ public class CurrentUserCtx implements CurrentUserContextProvider {
     }
 
     @Override
-    public void setUserAccount(com.biqasoft.users.useraccount.UserAccount userAccount) {
+    public void setUserAccount(UserAccount userAccount) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
     public void setDomain(Domain domain) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public void setDomainSettings(DomainSettings domainSettings) {
         throw new RuntimeException("Not implemented");
     }
 

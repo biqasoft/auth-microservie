@@ -55,7 +55,7 @@ public class UserOAuth2Controller {
     @ApiOperation(value = "add new user")
     @PostMapping
     public Mono<UserAccountOAuth2> create(@RequestBody OAuth2MicroserviceNewTokenRequest request, Principal principal){
-        return oAuth2Repository.createNewOAuthToken(request.getUserAccount(), request.getoAuth2Application(), request.getRequest(), AuthHelper.castFromPrincipal(principal));
+        return oAuth2Repository.createNewOAuthToken(request.getUserAccount(), request.getOAuth2Application(), request.getRequest(), AuthHelper.castFromPrincipal(principal));
     }
 
     @ApiOperation(value = "")

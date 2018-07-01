@@ -177,8 +177,8 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
 
 
     @Override
-    public Mono<SampleDataResponse> getSecretCodeForOAuthApplication(OAuth2Application application, CurrentUserCtx ctx) {
-        SampleDataResponse response = new SampleDataResponse();
+    public Mono<SampleDataResponseDto> getSecretCodeForOAuthApplication(OAuth2Application application, CurrentUserCtx ctx) {
+        SampleDataResponseDto response = new SampleDataResponseDto();
 
         if (!application.getCreatedInfo().getCreatedById().equals(ctx.getUserAccount().getId())) {
             ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.secret_code.only_creator_can");

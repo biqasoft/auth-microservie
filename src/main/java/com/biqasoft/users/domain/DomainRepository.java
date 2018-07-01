@@ -21,7 +21,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 @Service
@@ -99,7 +98,7 @@ public class DomainRepository {
      * @param domain new domain ofr customization
      * @return new created domain
      */
-    public Domain addDomain(@Nullable Domain domain) {
+    public Domain addDomain(Domain domain) {
         if (domain == null){
             domain = new Domain();
         }
