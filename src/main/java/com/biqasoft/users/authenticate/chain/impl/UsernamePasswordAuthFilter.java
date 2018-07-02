@@ -64,7 +64,6 @@ public class UsernamePasswordAuthFilter implements AuthChainFilter {
                 } else if (user == null) {
                     logger.info("Username {}: user not found", username);
 //                    ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.no_user");
-                    authFailedLimit.processFailedAuth(authenticateRequest);
                     s.success(EMPTY_RESULT);
                 } else {
                     AuthChainOneFilterResult result = new AuthChainOneFilterResult();

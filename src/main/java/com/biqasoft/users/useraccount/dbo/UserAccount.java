@@ -98,9 +98,6 @@ public class UserAccount extends GlobalStoredBaseClass {
     @ApiModelProperty("List of roles including roles from group and personal group ")
     private List<String> effectiveRoles = new ArrayList<>();
 
-    @ApiModelProperty("List of domains in which user is invited")
-    private List<String> domains = new ArrayList<>();
-
     private String twoStepCode;
 
     private boolean twoStepActivated;

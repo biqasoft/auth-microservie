@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -122,7 +123,7 @@ public class UserAccountRepositoryImpl implements UserAccountRepository {
                     userAccount.setEnabled(true); // or false
                     userAccount.setStatus(UserAccount.UserAccountStatus.STATUS_APPROVED.name()); // or UserAccountStatus.STATUS_DISABLED
 
-                    userAccount.setCreatedInfo(new CreatedInfo(new Date()));
+                    userAccount.setCreatedInfo(new CreatedInfo(LocalDateTime.now()));
                     return ops.insert(userAccount).flatMap(x -> {
                         CreatedUser createdUser = new CreatedUser();
                         createdUser.setUserAccount(userAccount);

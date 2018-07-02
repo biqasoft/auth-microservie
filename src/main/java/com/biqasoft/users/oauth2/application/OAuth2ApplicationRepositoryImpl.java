@@ -9,10 +9,10 @@ import com.biqasoft.common.utils.RandomString;
 import com.biqasoft.entity.annotations.BiqaAddObject;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.entity.core.CreatedInfo;
-import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.microservice.database.MainReactiveDatabase;
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.config.SystemSettings;
+import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -22,8 +22,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -100,7 +100,7 @@ public class OAuth2ApplicationRepositoryImpl implements OAuth2ApplicationReposit
      */
     private OAuth2Application createNewApplicationPrivateWithoutChecking(OAuth2Application application) {
 
-        application.setCreatedInfo(new CreatedInfo(new Date()));
+        application.setCreatedInfo(new CreatedInfo(LocalDateTime.now()));
 
         // set app secret code on app creation
         String secretCode = oauthTokenRandomString.nextString();

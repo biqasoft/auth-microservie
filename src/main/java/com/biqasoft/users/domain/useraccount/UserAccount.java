@@ -76,7 +76,7 @@ public class UserAccount extends BaseClass {
     private boolean twoStepEnabled;
 
     @ApiModelProperty("List of domains in which user is invited")
-    private List<String> domains = new ArrayList<>();
+    private String domain;
 
     @ApiModelProperty(value = "String which contains serialized JSON", notes = "Store any data here")
     private PersonalSettings personalSettings = new PersonalSettings();

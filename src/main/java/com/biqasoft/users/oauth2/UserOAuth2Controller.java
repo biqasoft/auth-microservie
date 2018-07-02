@@ -9,7 +9,7 @@
 package com.biqasoft.users.oauth2;
 
 import com.biqasoft.users.authenticate.AuthHelper;
-import com.biqasoft.users.authenticate.dto.UserNameWithPassword;
+import com.biqasoft.users.oauth2.dto.CreateTokenResponse;
 import com.biqasoft.users.oauth2.dto.DeleteToken;
 import com.biqasoft.users.oauth2.dto.OAuth2MicroserviceNewCredentialsRequest;
 import com.biqasoft.users.oauth2.dto.OAuth2MicroserviceNewTokenRequest;
@@ -41,8 +41,8 @@ public class UserOAuth2Controller {
 
     @ApiOperation(value = "add new user")
     @PostMapping(value = "additional_username_password")
-    public Mono<UserNameWithPassword> create(@RequestBody OAuth2MicroserviceNewCredentialsRequest request, Principal principal){
-        return oAuth2Repository.createAdditionalUsernameAndPasswordCredentialsOauth(request.getUserAccount(),
+    public Mono<CreateTokenResponse> create(@RequestBody OAuth2MicroserviceNewCredentialsRequest request, Principal principal){
+        return oAuth2Repository.createAdditionalUsernameAndPasswordCredentialsOauth(request.getUserAccountId(),
                 request.getRolesRequested(), request.getExpireDate(), AuthHelper.castFromPrincipal(principal));
     }
 
@@ -55,7 +55,7 @@ public class UserOAuth2Controller {
     @ApiOperation(value = "add new user")
     @PostMapping
     public Mono<UserAccountOAuth2> create(@RequestBody OAuth2MicroserviceNewTokenRequest request, Principal principal){
-        return oAuth2Repository.createNewOAuthToken(request.getUserAccount(), request.getOAuth2Application(), request.getRequest(), AuthHelper.castFromPrincipal(principal));
+        return oAuth2Repository.createNewOAuthToken(request.getUserAccountId(), request.getOAuth2Application(), request.getRequest(), AuthHelper.castFromPrincipal(principal));
     }
 
     @ApiOperation(value = "")

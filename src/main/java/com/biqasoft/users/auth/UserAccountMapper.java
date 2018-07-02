@@ -2,7 +2,6 @@ package com.biqasoft.users.auth;
 
 import com.biqasoft.users.domain.useraccount.UserAccount;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +49,6 @@ public class UserAccountMapper {
         account.setUsername(msModel.getUsername());
         account.setTwoStepEnabled(msModel.isTwoStepActivated());
 
-        account.setDomains(new ArrayList<>(msModel.getDomains()));
         return account;
     }
 
@@ -87,7 +85,7 @@ public class UserAccountMapper {
         msModel.setPersonalSettings(dtoModel.getPersonalSettings());
         msModel.setUsername(dtoModel.getUsername());
 
-        msModel.setDomains(dtoModel.getDomains());
+        msModel.setDomain(dtoModel.getDomain());
 
         return msModel;
     }

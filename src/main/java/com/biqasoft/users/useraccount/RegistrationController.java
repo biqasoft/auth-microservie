@@ -64,7 +64,7 @@ public class RegistrationController {
                     user.setRoles(Lists.newArrayList(SystemRoles.ROLE_ADMIN, SystemRoles.ALLOW_ALL_DOMAIN_BASED));
                     user.setDomain(domain.getDomain());
 
-                    if (StringUtils.isEmpty(userAccountAddRequest.getPassword())) {
+                    if (!StringUtils.isEmpty(userAccountAddRequest.getPassword())) {
                         user.setPassword(userAccountAddRequest.getPassword());
                     }
 

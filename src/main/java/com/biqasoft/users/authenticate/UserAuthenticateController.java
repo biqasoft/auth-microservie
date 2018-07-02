@@ -36,13 +36,13 @@ public class UserAuthenticateController {
         this.requestAuthenticateService = requestAuthenticateService;
     }
 
-    @ApiOperation(value = "auth")
+    @ApiOperation(value = "auth", notes = "Private API for other microservices")
     @PostMapping
     public Mono<AuthenticateResultDto> authenticateRequest(@RequestBody AuthenticateRequest authenticateRequest) {
         return requestAuthenticateService.authenticateRequest(authenticateRequest);
     }
 
-    @ApiOperation(value = "auth")
+    @ApiOperation(value = "auth", notes = "Public API - current authentication in auth microservice")
     @GetMapping
     public MeResponseDto authenticateRequestMe(Principal principal) {
         CurrentUserCtx currentUserCtx = AuthHelper.castFromPrincipal(principal);
@@ -57,7 +57,6 @@ public class UserAuthenticateController {
     @Data
     static class MeResponseDto {
         private Domain domain;
-        private DomainSettings domainSettings;
         private UserAccount account;
     }
 

@@ -6,6 +6,11 @@ import reactor.core.publisher.Mono;
 /**
  * Interface for different authentication type: e.g. username+password, OAuth2 token, LDAP/AD.
  * All instances of that interface are injected by {@link com.biqasoft.users.authenticate.RequestAuthenticateService}
+ *
+ * Notes to filter implementations:
+ *  - In case, you not fully sure that request is invalid, you should return EMPTY_RESULT from process method.
+ *  - In case you through exception, authentication will be immediately failed, so other filters will not be executed. Through exception carefully
+ *
  */
 public interface AuthChainFilter {
 

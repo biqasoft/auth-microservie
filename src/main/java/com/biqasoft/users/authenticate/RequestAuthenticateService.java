@@ -87,7 +87,10 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
 
             Function<AuthChainFilter, Mono<AuthChainOneFilterResult>> funcEmpToString = (AuthChainFilter next) ->
                     Mono.create(m -> next.process(authenticateRequest)
-                            .doOnError(e -> result.error(e))
+                            .doOnError(e -> {
+                                authFailedLimit.processFailedAuth(authenticateRequest);
+                                result.error(e);
+                            })
                             .subscribe(process -> {
                                 if (process.isForceReturn()) {
                                     result.success(process.getAuthenticateResult());
@@ -108,9 +111,10 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
                 funcEmpToString.apply(next[0]).subscribe(m -> {
                     if (!done[0]) {
                         if (iterator.hasNext()) {
-                            next[0] = iterator.next();
                             a.apply(a);
                         } else {
+                            // failed
+                            authFailedLimit.processFailedAuth(authenticateRequest);
                             result.success();
                         }
                     }
