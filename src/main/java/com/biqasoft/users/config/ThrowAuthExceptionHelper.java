@@ -16,8 +16,6 @@ import reactor.core.publisher.Mono;
  */
 public class ThrowAuthExceptionHelper {
 
-    private final static Logger logger = LoggerFactory.getLogger(ThrowAuthExceptionHelper.class);
-
     /**
      * Catched by
      *
@@ -31,15 +29,15 @@ public class ThrowAuthExceptionHelper {
         return new InvalidRequestLocalizedException(messageId);
     }
 
-    public static Mono<BiqaAuthenticationLocalizedException> throwErrorReactiveBiqaAuthenticationLocalizedException(String messageId) {
-        return Mono.error(new InvalidRequestLocalizedException(messageId));
-    }
+//    public static Mono<BiqaAuthenticationLocalizedException> throwErrorReactiveBiqaAuthenticationLocalizedException(String messageId) {
+//        return Mono.error(new InvalidRequestLocalizedException(messageId));
+//    }
 
     public static BiqaAuthenticationLocalizedException justErrorReactiveBiqaAuthenticationLocalizedException(String messageId) {
         return new BiqaAuthenticationLocalizedException(messageId);
     }
 
-    public static Mono throwErrorReactiveBiqaLocalizedException(String messageId) {
+    public static <T> Mono<T> throwErrorReactiveBiqaLocalizedException(String messageId) {
         return Mono.error(new InvalidRequestLocalizedException(messageId));
     }
 

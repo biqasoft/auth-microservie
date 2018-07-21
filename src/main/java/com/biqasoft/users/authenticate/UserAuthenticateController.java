@@ -12,8 +12,7 @@ import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.dto.AuthenticateResultDto;
 import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.domain.DomainSettings;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.Data;
@@ -57,7 +56,7 @@ public class UserAuthenticateController {
     @Data
     static class MeResponseDto {
         private Domain domain;
-        private UserAccount account;
+        private UserAccountDbo account;
     }
 
 }

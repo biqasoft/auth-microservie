@@ -11,7 +11,7 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.Data;
@@ -54,7 +54,7 @@ public class GlobalUserController {
     @GetMapping(value = "search/domain/id/{id}")
     public Domain findDomainForUserId(@PathVariable("id") String id, Principal principal) {
         // TODO:
-        UserAccount byUserId = userAccountRepository.findByUserId(id, AuthHelper.castFromPrincipal(principal)).block();
+        UserAccountDbo byUserId = userAccountRepository.findByUserId(id, AuthHelper.castFromPrincipal(principal)).block();
 //        String domainForInternalUser = CurrentUserContextProviderImpl.getDomainForInternalUser(byUserId);
 //        return domainRepository.findDomainById(domainForInternalUser);
         return null;
@@ -72,8 +72,8 @@ public class GlobalUserController {
     }
 
     @DeleteMapping(value = "id/{id}")
-    public void updateUserAccount(@PathVariable("id") String id) throws Exception {
-        userAccountRepository.deleteUserById(id);
+    public Mono<Void> updateUserAccount(@PathVariable("id") String id) {
+        return userAccountRepository.deleteUserById(id);
     }
 
 

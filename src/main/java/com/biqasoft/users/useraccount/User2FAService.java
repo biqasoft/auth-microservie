@@ -2,7 +2,7 @@ package com.biqasoft.users.useraccount;
 
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ public class User2FAService {
      * @param code2FA     provided by user token
      * @return true if 2FA code is valid. false if token is wrong
      */
-    public boolean isTwoStepCodeValidForUser(UserAccount userAccount, @NotNull String code2FA) {
+    public boolean isTwoStepCodeValidForUser(UserAccountDbo userAccount, @NotNull String code2FA) {
         String currentValidCode;
         try {
             if (StringUtils.isEmpty(userAccount.getTwoStepCode())) {
@@ -83,7 +83,7 @@ public class User2FAService {
 
 
 //    TODO: generify for any user generate, not only spring context
-//    public SecondFactorResponseDTO generateSecret2FactorForUser(UserAccount account) {
+//    public SecondFactorResponseDTO generateSecret2FactorForUser(UserAccountDbo account) {
 //
 //    }
 
@@ -91,13 +91,13 @@ public class User2FAService {
      * @return DTO with secret code for user
      */
     public Mono<SecondFactorResponseDTO> generateSecret2FactorForUser(CurrentUserCtx ctx) {
-        SecondFactorResponseDTO secondFactorResponseDTO = new SecondFactorResponseDTO();
+        var secondFactorResponseDTO = new SecondFactorResponseDTO();
 
-        UserAccount currentUserObj = ctx.getUserAccount();
-        String base32Secret = generateBase32Secret();
+        var currentUserObj = ctx.getUserAccount();
+        var base32Secret = generateBase32Secret();
 
         // generate the QR code
-        String imageUrl = TimeBasedOneTimePasswordUtil.qrImageUrl(currentUserObj.getUsername(), base32Secret);
+        var imageUrl = TimeBasedOneTimePasswordUtil.qrImageUrl(currentUserObj.getUsername(), base32Secret);
 
         // we can use the code here and compare it against user input
         return userAccountRepository.findByUserId(ctx.getUserAccount().getId(), ctx).map(byUserId -> {

@@ -13,7 +13,7 @@ import com.biqasoft.users.domain.useraccount.PersonalSettings;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import com.biqasoft.users.useraccount.dto.TwoStepModifyRequest;
 import com.biqasoft.users.useraccount.dto.UserAccountRegisterRequestDto;
 import io.swagger.annotations.Api;
@@ -87,7 +87,7 @@ public class DomainUserController {
     @ApiOperation(value = "add new user")
     @PostMapping(value = "")
     public Mono<com.biqasoft.users.domain.useraccount.UserAccount> create(@RequestBody UserAccountRegisterRequestDto userAccountAddRequest, Principal principal) {
-        UserAccount userPosted = userAccountAddRequest.getUserAccount();
+        UserAccountDbo userPosted = userAccountAddRequest.getUserAccount();
         userPosted.setDomain(AuthHelper.castFromPrincipal(principal).getDomain().getDomain());
         return userAccountRepository.createUserAccountInDomain(userPosted, userAccountAddRequest.getPassword(), AuthHelper.castFromPrincipal(principal))
                 .map(createdUser -> {
@@ -101,7 +101,7 @@ public class DomainUserController {
     }
 
     @PutMapping
-    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> deleteUserAccount(@RequestBody UserAccount userPosted, Principal principal) throws Exception {
+    public Mono<com.biqasoft.users.domain.useraccount.UserAccount> deleteUserAccount(@RequestBody UserAccountDbo userPosted, Principal principal) throws Exception {
         return userAccountRepository.updateUserAccountForCurrentDomain(userPosted, AuthHelper.castFromPrincipal(principal)).map(UserAccountMapper::mapInternalToDto);
     }
 

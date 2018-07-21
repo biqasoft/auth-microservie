@@ -1,7 +1,7 @@
 package com.biqasoft.users.grpc;
 
 import com.biqasoft.auth.internal.grpc.UserOuterClass;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 
 class UsersToGrpcMapper {
 
@@ -10,7 +10,7 @@ class UsersToGrpcMapper {
      * @param msModel ms model
      * @return grpc model
      */
-    static UserOuterClass.User mapMsModelToGrpc(UserAccount msModel) {
+    static UserOuterClass.User mapMsModelToGrpc(UserAccountDbo msModel) {
         UserOuterClass.User.Builder account = UserOuterClass.User.newBuilder();
 
         account.setStatus(msModel.getStatus());

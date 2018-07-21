@@ -12,7 +12,7 @@ import com.biqasoft.users.domain.useraccount.oauth2.OAuth2Application;
 import com.biqasoft.users.oauth2.application.OAuth2ApplicationRepository;
 import com.biqasoft.users.oauth2.dto.CreateTokenResponse;
 import com.biqasoft.users.useraccount.UserAccountRepository;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
@@ -57,7 +57,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     @Override
     public Flux<UserAccountOAuth2> getCurrentUserTokens(CurrentUserCtx ctx) {
         return userAccountRepository.findByUserId(ctx.getUserAccount().getId(), ctx).flatMapIterable(userAccount -> {
-            List<UserAccountOAuth2> tokens = new ArrayList<>(userAccount.getoAuth2s());
+            List<UserAccountOAuth2> tokens = new ArrayList<>(userAccount.getOAuth2s());
             tokens.forEach(x -> {
                 x.setAccessCode(null);
                 x.setAccessToken(null);
@@ -67,8 +67,8 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     }
 
     @Override
-    public Mono<UserAccount> findUserByOAuth2TokenIDAndUserNameToken(String tokenID, String customUsername) {
-        return ops.findOne(Query.query(Criteria.where("oAuth2s.accessToken").is(tokenID).and("oAuth2s.userName").is(customUsername)), UserAccount.class);
+    public Mono<UserAccountDbo> findUserByOAuth2TokenIDAndUserNameToken(String tokenID, String customUsername) {
+        return ops.findOne(Query.query(Criteria.where("oAuth2s.accessToken").is(tokenID).and("oAuth2s.userName").is(customUsername)), UserAccountDbo.class);
     }
 
     @Override
@@ -83,13 +83,13 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
                 ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.wrong_secret_code");
             }
 
-            return ops.findOne(Query.query(Criteria.where("oAuth2s.accessCode").in(code).and("oAuth2s.clientApplicationID").in(applicationID)), UserAccount.class).flatMap(userAccount -> {
+            return ops.findOne(Query.query(Criteria.where("oAuth2s.accessCode").in(code).and("oAuth2s.clientApplicationID").in(applicationID)), UserAccountDbo.class).flatMap(userAccount -> {
 
                 if (userAccount == null) {
                     ThrowExceptionHelper.throwExceptionInvalidRequestLocalized("oauth.no_with_code");
                 }
 
-                UserAccountOAuth2 auth2 = userAccount.getoAuth2s().stream()
+                UserAccountOAuth2 auth2 = userAccount.getOAuth2s().stream()
                         .filter(x -> x.getClientApplicationID().equals(applicationID) && x.getAccessCode().equals(code))
                         .findFirst().get();
 
@@ -132,8 +132,8 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
                 auth2.setExpire(request.getExpire());
             }
 
-            if (userAccount.getoAuth2s() == null) userAccount.setoAuth2s(new ArrayList<>());
-            userAccount.getoAuth2s().add(auth2);
+            if (userAccount.getOAuth2s() == null) userAccount.setOAuth2s(new ArrayList<>());
+            userAccount.getOAuth2s().add(auth2);
 
             return userAccountRepository.unsafeUpdateUserAccount(userAccount).map(m -> auth2);
         });
@@ -169,7 +169,7 @@ public class OAuth2RepositoryImpl implements OAuth2Repository {
     @Override
     public Mono<Void> deleteOauthTokenFromUserAccountById(String userAccount, String tokenId, CurrentUserCtx ctx) {
         return userAccountRepository.findByUserId(userAccount, ctx).flatMap(account -> {
-            account.setoAuth2s(account.getoAuth2s().stream().filter(x -> !x.getUserName().equals(tokenId)).collect(Collectors.toList()));
+            account.setOAuth2s(account.getOAuth2s().stream().filter(x -> !x.getUserName().equals(tokenId)).collect(Collectors.toList()));
             return userAccountRepository.unsafeUpdateUserAccount(account).flatMap(l -> Mono.empty());
         });
     }

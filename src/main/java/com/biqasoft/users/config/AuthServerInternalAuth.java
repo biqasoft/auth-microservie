@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class AuthServerInternalAuth implements Authentication {
 
-    private AuthenticateResultDto authenticateResult;
+    private final AuthenticateResultDto authenticateResult;
 
     public AuthServerInternalAuth(AuthenticateResultDto authenticateResult) {
         this.authenticateResult = authenticateResult;
@@ -24,7 +24,7 @@ public class AuthServerInternalAuth implements Authentication {
 
     @Override
     public Object getCredentials() {
-        return " ";
+        throw new IllegalStateException("Not supported operation getCredentials()");
     }
 
     @Override
@@ -34,9 +34,8 @@ public class AuthServerInternalAuth implements Authentication {
 
     @Override
     public Object getPrincipal() {
-        User user = new User(authenticateResult.getUserAccount().getUsername(), (String) getCredentials(), authenticateResult.getUserAccount().getEnabled(),
+        return new User(authenticateResult.getUserAccount().getUsername(), (String) getCredentials(), authenticateResult.getUserAccount().getEnabled(),
                              true, true, true, getAuthorities());
-        return user;
     }
 
     @Override

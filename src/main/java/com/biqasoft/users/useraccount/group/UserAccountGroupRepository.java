@@ -11,7 +11,7 @@ import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.users.domain.useraccount.UserAccountGroup;
 import com.biqasoft.microservice.database.MongoTenantHelper;
 import com.biqasoft.users.auth.CurrentUserCtx;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import com.biqasoft.users.useraccount.UserAccountRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class UserAccountGroupRepository {
 
     /**
      * Check that user can not grant admin or root role
-     * see similar {@link UserAccountRepositoryImpl#checkSystemRolesPermission(UserAccount)}
+     * see similar {@link UserAccountRepositoryImpl#checkSystemRolesPermission(UserAccountDbo)}
      *
      * @param userAccountGroup
      */
@@ -72,10 +72,10 @@ public class UserAccountGroupRepository {
         checkRolesPermission(userAccountGroup, ctx);
 
         // TODO: test > 256 elements
-        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain(ctx).toStream().collect(Collectors.toList());
+        List<UserAccountDbo> userAccounts = userAccountRepository.findAllUsersInDomain(ctx).toStream().collect(Collectors.toList());
 
         // delete this group from all users which have this group earlier
-        for (UserAccount userAccount : userAccounts) {
+        for (UserAccountDbo userAccount : userAccounts) {
 
             userAccount.setGroups(userAccount.getGroups().stream().
                     filter(x -> !x.getId().equals(userAccountGroup.getId()))
@@ -85,7 +85,7 @@ public class UserAccountGroupRepository {
         // if updated user account group have user account - add to user account his group
         for (String userThatWillHave : userAccountGroup.getUserAccountsIDs()) {
 
-            for (UserAccount userAccount : userAccounts) {
+            for (UserAccountDbo userAccount : userAccounts) {
                 if (!userAccount.getId().equals(userThatWillHave)) {
                     continue;
                 }
@@ -93,7 +93,7 @@ public class UserAccountGroupRepository {
             }
         }
 
-        for (UserAccount userAccount : userAccounts) {
+        for (UserAccountDbo userAccount : userAccounts) {
             userAccountRepository.unsafeUpdateUserAccount(userAccount);
         }
 
@@ -107,10 +107,10 @@ public class UserAccountGroupRepository {
     private void processDeleteGroupOperation(UserAccountGroup userAccountGroup, CurrentUserCtx ctx) {
         checkRolesPermission(userAccountGroup, ctx);
 
-        List<UserAccount> userAccounts = userAccountRepository.findAllUsersInDomain(ctx).toStream().collect(Collectors.toList());
+        List<UserAccountDbo> userAccounts = userAccountRepository.findAllUsersInDomain(ctx).toStream().collect(Collectors.toList());
 
         // delete this group from all users which have this group earlier
-        for (UserAccount userAccount : userAccounts) {
+        for (UserAccountDbo userAccount : userAccounts) {
 
             userAccount.setGroups(userAccount.getGroups().stream().filter(x -> !x.getId().equals(userAccountGroup.getId())).collect(Collectors.toList()));
             userAccountRepository.unsafeUpdateUserAccount(userAccount);

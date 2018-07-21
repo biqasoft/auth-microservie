@@ -6,9 +6,11 @@ import com.biqasoft.auth.internal.grpc.UsersGrpc;
 import com.biqasoft.users.authenticate.RequestAuthenticateService;
 import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.config.BiqaAuthenticationLocalizedException;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
 import com.biqasoft.users.useraccount.UserAccountRepository;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
 
     private final UserAccountRepository userAccountRepository;
     private final RequestAuthenticateService authenticateService;
+    private static final Logger logger = LoggerFactory.getLogger(UsersOperationsGrpc.class);
 
     @Autowired
     public UsersOperationsGrpc(UserAccountRepository userAccountRepository, RequestAuthenticateService authenticateService) {
@@ -38,16 +41,29 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
         UsersGet.UserAuthenticateResponse.Builder builder = UsersGet.UserAuthenticateResponse.newBuilder();
 
         try {
-            authenticateService.authenticateRequest(authenticateRequest).subscribe(authenticateResult -> {
-                builder.setAuthenticated(authenticateResult.getAuthenticated());
+            authenticateService.authenticateRequest(authenticateRequest)
+                    .doOnError((e) -> {
+                        if (e instanceof BiqaAuthenticationLocalizedException) {
+                            builder.setError(e.getMessage());
+                            builder.setAuthenticated(false);
+                            responseObserver.onNext(builder.build());
+                        } else {
+                            logger.error("internal error auth grpc", e);
+                            builder.setError(e.getMessage());
+                            builder.setAuthenticated(false);
+                            responseObserver.onNext(builder.build());
+                        }
+                    })
+                    .subscribe(authenticateResult -> {
+                        builder.setAuthenticated(authenticateResult.getAuthenticated());
 
-                if (authenticateResult.getAuths() != null && authenticateResult.getUserAccount() != null) {
-                    builder.addAllAuths(authenticateResult.getAuths());
-                    builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(authenticateResult.getUserAccount()));
-                }
-                responseObserver.onNext(builder.build());
-            });
-        } catch (BiqaAuthenticationLocalizedException e) {
+                        if (authenticateResult.getAuths() != null && authenticateResult.getUserAccount() != null) {
+                            builder.addAllAuths(authenticateResult.getAuths());
+                            builder.setUserAccount(UsersToGrpcMapper.mapMsModelToGrpc(authenticateResult.getUserAccount()));
+                        }
+                        responseObserver.onNext(builder.build());
+                    });
+        } catch (Exception e) {
             builder.setError(e.getMessage());
             builder.setAuthenticated(false);
             responseObserver.onNext(builder.build());
@@ -73,7 +89,7 @@ public class UsersOperationsGrpc extends UsersGrpc.UsersImplBase {
 
     private UserOuterClass.User processUser(UsersGet.UserGetRequest request) {
         String id = request.getId();
-        UserAccount internalUser = userAccountRepository.unsafeFindUserById(id).block();
+        UserAccountDbo internalUser = userAccountRepository.unsafeFindUserById(id).block();
 
         if (internalUser != null) {
             return UsersToGrpcMapper.mapMsModelToGrpc(internalUser);

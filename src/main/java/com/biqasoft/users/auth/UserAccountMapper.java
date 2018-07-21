@@ -1,7 +1,11 @@
 package com.biqasoft.users.auth;
 
 import com.biqasoft.users.domain.useraccount.UserAccount;
+import com.biqasoft.users.domain.useraccount.UserAccountGroup;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public class UserAccountMapper {
 
-    public static List<UserAccount> mapInternalToDto(List<com.biqasoft.users.useraccount.dbo.UserAccount> internalUser){
+    public static List<UserAccount> mapInternalToDto(List<UserAccountDbo> internalUser){
         return internalUser.stream().map(UserAccountMapper::mapInternalToDto).collect(Collectors.toList());
     }
 
@@ -19,8 +23,8 @@ public class UserAccountMapper {
      * @param msModel internal model
      * @return dto
      */
-    public static UserAccount mapInternalToDto(com.biqasoft.users.useraccount.dbo.UserAccount msModel){
-        UserAccount account = new UserAccount();
+    public static UserAccount mapInternalToDto(UserAccountDbo msModel){
+        var account = new UserAccount();
         account.setId(msModel.getId());
 
         account.setFirstname(msModel.getFirstname());
@@ -38,7 +42,7 @@ public class UserAccountMapper {
 
         account.setEnabled(msModel.getEnabled());
         account.setRoles(msModel.getRoles());
-        account.setEffectiveRoles(msModel.getEffectiveRoles());
+        account.setEffectiveRoles(getEffectiveRoles(msModel));
         account.setStatus(msModel.getStatus());
         account.setGroups(msModel.getGroups());
         account.setIpPattern(msModel.getIpPattern());
@@ -52,13 +56,39 @@ public class UserAccountMapper {
         return account;
     }
 
+    private static List<String> getEffectiveRoles(UserAccountDbo user) {
+        var effectiveRoles = new ArrayList<String>();
+
+        if (!CollectionUtils.isEmpty(user.getGroups())) {
+            for (UserAccountGroup group : user.getGroups()) {
+
+                if (!group.isEnabled()) {
+                    continue;
+                }
+
+                if (CollectionUtils.isEmpty(group.getGrantedRoles())) {
+                    continue;
+                }
+
+                effectiveRoles.addAll(group.getGrantedRoles());
+            }
+        }
+
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            effectiveRoles.addAll(user.getRoles());
+        }
+
+        return effectiveRoles;
+    }
+
+
     /**
      * Map dto to internal microservice
      * @param dtoModel dto
      * @return internal model
      */
-    public static com.biqasoft.users.useraccount.dbo.UserAccount mapDtoToInternal(UserAccount dtoModel){
-        com.biqasoft.users.useraccount.dbo.UserAccount msModel = new com.biqasoft.users.useraccount.dbo.UserAccount();
+    public static UserAccountDbo mapDtoToInternal(UserAccount dtoModel){
+        var msModel = new UserAccountDbo();
         msModel.setId(dtoModel.getId());
 
         msModel.setFirstname(dtoModel.getFirstname());

@@ -2,7 +2,7 @@ package com.biqasoft.users.auth;
 
 import com.biqasoft.users.domain.Domain;
 import com.biqasoft.users.config.AuthServerInternalAuth;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -13,8 +13,8 @@ import java.util.Locale;
 
 public class CurrentUserCtx implements CurrentUserContextProvider {
 
-    private Domain domain;
-    private UserAccount account;
+    private final Domain domain;
+    private final UserAccountDbo account;
 
     private static final String DEFAULT_LANGUAGE = "en_US";
     private static final String DEFAULT_DATE_FORMAT = "dd.MM.yyyy HH:mm";
@@ -27,7 +27,7 @@ public class CurrentUserCtx implements CurrentUserContextProvider {
     }
 
     @Override
-    public UserAccount getUserAccount() {
+    public UserAccountDbo getUserAccount() {
         return account;
     }
 
@@ -37,7 +37,7 @@ public class CurrentUserCtx implements CurrentUserContextProvider {
     }
 
     @Override
-    public void setUserAccount(UserAccount userAccount) {
+    public void setUserAccount(UserAccountDbo userAccount) {
         throw new RuntimeException("Not implemented");
     }
 

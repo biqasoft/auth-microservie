@@ -12,8 +12,6 @@ import com.biqasoft.entity.core.GlobalStoredBaseClass;
 import com.biqasoft.users.domain.useraccount.PersonalSettings;
 import com.biqasoft.users.domain.useraccount.UserAccountGroup;
 import com.biqasoft.users.oauth2.UserAccountOAuth2;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -22,7 +20,7 @@ import org.javers.core.metamodel.annotation.DiffIgnore;
 import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
-import org.springframework.util.CollectionUtils;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -32,7 +30,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel("This is main user account object")
-public class UserAccount extends GlobalStoredBaseClass {
+@Document("userAccount")
+public class UserAccountDbo extends GlobalStoredBaseClass {
 
     @NotNull
     @Indexed(unique = true, direction = IndexDirection.DESCENDING, dropDups = true)
@@ -41,11 +40,9 @@ public class UserAccount extends GlobalStoredBaseClass {
     private String username;
 
     @DiffIgnore
-    @JsonIgnore
     private String password;
 
     @ApiModelProperty("telephone")
-//    @Indexed(unique = true, direction = IndexDirection.DESCENDING, dropDups = true)
     @Indexed(dropDups = true, unique = true, sparse = true, name = "telephone")
     private String telephone;
 
@@ -86,7 +83,6 @@ public class UserAccount extends GlobalStoredBaseClass {
     @ApiModelProperty(value = "last online user date", notes = "This is sent by client using GET `/myaccount/setOnline` API call")
     private Date lastOnline;
 
-    @JsonIgnore
     @DiffIgnore
     private List<UserAccountOAuth2> oAuth2s = new ArrayList<>();
 
@@ -95,61 +91,12 @@ public class UserAccount extends GlobalStoredBaseClass {
     @ApiModelProperty("User language")
     private String language;
 
-    @ApiModelProperty("List of roles including roles from group and personal group ")
-    private List<String> effectiveRoles = new ArrayList<>();
-
     private String twoStepCode;
 
     private boolean twoStepActivated;
 
     @ApiModelProperty(value = "Pattern for allowed IP address to authentificate")
     private String ipPattern = null;
-
-    @JsonProperty("effectiveRoles")
-    public List<String> getEffectiveRoles() {
-        List<String> effectiveRoles = new ArrayList<>();
-
-        if (!CollectionUtils.isEmpty(this.getGroups())) {
-            for (UserAccountGroup group : this.getGroups()) {
-
-                if (!group.isEnabled()) {
-                    continue;
-                }
-
-                if (CollectionUtils.isEmpty(group.getGrantedRoles())) {
-                    continue;
-                }
-
-                effectiveRoles.addAll(group.getGrantedRoles());
-            }
-        }
-
-        if (!CollectionUtils.isEmpty(this.getRoles())) {
-            effectiveRoles.addAll(this.getRoles());
-        }
-
-        return effectiveRoles;
-    }
-
-    @JsonIgnore
-    public List<UserAccountOAuth2> getoAuth2s() {
-        return oAuth2s;
-    }
-
-    @JsonProperty("oAuth2s")
-    public void setoAuth2s(List<UserAccountOAuth2> oAuth2s) {
-        this.oAuth2s = oAuth2s;
-    }
-
-    @JsonIgnore
-    public String getPassword() {
-        return password;
-    }
-
-    @JsonProperty("password")
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public static enum UserAccountStatus {
         STATUS_PENDING, STATUS_APPROVED, STATUS_DISABLED, STATUS_PENDING_NOPASSWORD;

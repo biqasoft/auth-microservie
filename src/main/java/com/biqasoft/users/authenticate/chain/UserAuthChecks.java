@@ -4,7 +4,7 @@ import com.biqasoft.users.authenticate.dto.AuthenticateRequest;
 import com.biqasoft.users.authenticate.limit.AuthFailedLimit;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
 import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +43,7 @@ public class UserAuthChecks {
      * @param userAccount   user
      * @param domain        user domain
      */
-    public void checkUserIpPatternAndActiveDomain(String remoteAddress, UserAccount userAccount, Domain domain) {
+    public void checkUserIpPatternAndActiveDomain(String remoteAddress, UserAccountDbo userAccount, Domain domain) {
         if (userAccount != null) {
 
             // check for allowed IP address for user regexp pattern
@@ -63,9 +63,9 @@ public class UserAuthChecks {
         }
     }
 
-    public void checkUserEnabled(UserAccount user, AuthenticateRequest authenticateRequest) {
-        if (!(UserAccount.UserAccountStatus.STATUS_APPROVED.name().equals(user.getStatus()))) {
-            logger.info("Username {}: not approved status is {} | {}", user.getUsername(), user.getStatus(), UserAccount.UserAccountStatus.STATUS_APPROVED.name());
+    public void checkUserEnabled(UserAccountDbo user, AuthenticateRequest authenticateRequest) {
+        if (!(UserAccountDbo.UserAccountStatus.STATUS_APPROVED.name().equals(user.getStatus()))) {
+            logger.info("Username {}: not approved status is {} | {}", user.getUsername(), user.getStatus(), UserAccountDbo.UserAccountStatus.STATUS_APPROVED.name());
             this.authFailedLimit.processFailedAuth(authenticateRequest);
             ThrowAuthExceptionHelper.throwExceptionBiqaAuthenticationLocalizedException("auth.exception.not_approved");
         }

@@ -43,9 +43,7 @@ public class ExceptionHandler implements WebExceptionHandler {
             } catch (java.io.IOException e) {
                 e.printStackTrace();
             }
-        }
-
-        if (throwable instanceof InvalidRequestException) {
+        } else if (throwable instanceof InvalidRequestException) {
             InvalidRequestException ire = (InvalidRequestException) throwable;
             ErrorResourceDto error = new ErrorResourceDto("InvalidRequest", ire.getMessage());
 
@@ -60,9 +58,7 @@ public class ExceptionHandler implements WebExceptionHandler {
             } catch (java.io.IOException e) {
                 e.printStackTrace();
             }
-        }
-
-        if (throwable instanceof BiqaAuthenticationLocalizedException) {
+        } else if (throwable instanceof BiqaAuthenticationLocalizedException) {
             BiqaAuthenticationLocalizedException ire = (BiqaAuthenticationLocalizedException) throwable;
             ErrorResourceDto error = new ErrorResourceDto(ire.getMessage(), messageByLocaleService.getMessage(ire.getMessage()));
 

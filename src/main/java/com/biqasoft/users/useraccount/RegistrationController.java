@@ -3,10 +3,9 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.entity.constants.SystemRoles;
 import com.biqasoft.users.auth.UserAccountMapper;
 import com.biqasoft.users.config.ThrowAuthExceptionHelper;
-import com.biqasoft.users.domain.Domain;
 import com.biqasoft.users.domain.DomainRepository;
 import com.biqasoft.users.notifications.EmailPrepareAndSendService;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import com.biqasoft.users.useraccount.dto.UserAccountRegisterRequestDto;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
@@ -50,10 +49,10 @@ public class RegistrationController {
                 .map(dg -> new GlobalUserController.CreatedUserDto())
                 .switchIfEmpty(Mono.defer(() -> {
 
-                    Domain domain = domainRepository.addDomain(null);
+                    var domain = domainRepository.addDomain(null);
 
                     // create new admin account
-                    UserAccount user = new UserAccount();
+                    var user = new UserAccountDbo();
 
                     user.setTelephone(userAccountAddRequest.getUserAccount().getTelephone());
                     user.setUsername(userAccountAddRequest.getUserAccount().getEmail());

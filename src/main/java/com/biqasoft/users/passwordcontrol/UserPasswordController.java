@@ -12,7 +12,7 @@ import com.biqasoft.common.exceptions.ThrowExceptionHelper;
 import com.biqasoft.users.authenticate.AuthHelper;
 import com.biqasoft.users.passwordcontrol.dto.PasswordResetDTO;
 import com.biqasoft.users.passwordcontrol.dto.ResetPasswordTokenDTO;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ public class UserPasswordController {
 
     @ApiOperation(value = "change password password for some user")
     @RequestMapping(value = "domain/change_password", method = RequestMethod.PUT)
-    public PasswordResetDTO changePassword(@RequestBody UserAccount userPosted, Principal principal) {
+    public PasswordResetDTO changePassword(@RequestBody UserAccountDbo userPosted, Principal principal) {
         return passwordResetRepository.unsafeResetPassword(userPosted, AuthHelper.castFromPrincipal(principal));
     }
 

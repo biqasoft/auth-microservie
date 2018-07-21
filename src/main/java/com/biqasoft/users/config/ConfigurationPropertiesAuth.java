@@ -26,15 +26,5 @@ public class ConfigurationPropertiesAuth {
         private int times;
 
     }
-//
-//    @Data
-//    @ConfigurationProperties(prefix = "biqa.auth.limits.interval")
-//    @Configuration
-//    public static class IntervalPropsAll {
-//
-//        private boolean enable = true;
-//        private int times;
-//
-//    }
 
 }

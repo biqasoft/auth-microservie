@@ -68,7 +68,7 @@ public class OAuth2AuthFilter implements AuthChainFilter {
                             // generated username
                             if (username.startsWith(AUTHENTIFICATION_OAUTH2_USERNAME_PREFIX)) {
                                 // we have token, no need to check NPE
-                                UserAccountOAuth2 token = user.getoAuth2s().stream().filter(x -> x.getUserName().equals(username)).findFirst().get();
+                                UserAccountOAuth2 token = user.getOAuth2s().stream().filter(x -> x.getUserName().equals(username)).findFirst().get();
 
                                 // check OAuth token for disable
                                 if (!token.isEnabled()) {
@@ -119,7 +119,7 @@ public class OAuth2AuthFilter implements AuthChainFilter {
 
     @Override
     public String getName() {
-        return "OAuth2Auth";
+        return "OAuth2";
     }
 
     @Override

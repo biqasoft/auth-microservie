@@ -7,7 +7,7 @@ package com.biqasoft.users.notifications;
 import com.biqasoft.notifications.email.Email;
 import com.biqasoft.notifications.email.EmailSenderProvider;
 import com.biqasoft.users.passwordcontrol.dto.ResetPasswordTokenDTO;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
@@ -64,7 +64,7 @@ public class EmailPrepareAndSendService {
         }
     }
 
-    public void sendWelcomeEmailWhenCreateNewDomain(UserAccount user, String password) {
+    public void sendWelcomeEmailWhenCreateNewDomain(UserAccountDbo user, String password) {
         Template template = compiledTemplates.get("create_domain");
 
         Map<String, Object> map = new HashMap<>();
@@ -78,7 +78,7 @@ public class EmailPrepareAndSendService {
         emailSenderProvider.sendEmail(email);
     }
 
-    public void sendWelcomeEmailWhenAddNewUserToDomain(UserAccount user, String password) {
+    public void sendWelcomeEmailWhenAddNewUserToDomain(UserAccountDbo user, String password) {
         Template template = compiledTemplates.get("welcome_message_to_new_useraccount");
 
         Map<String, Object> map = new HashMap<>();

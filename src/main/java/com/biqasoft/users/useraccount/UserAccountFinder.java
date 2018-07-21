@@ -3,7 +3,7 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.audit.object.BaseClassFinder;
 import com.biqasoft.entity.core.BaseClass;
 import com.biqasoft.microservice.database.MainDatabase;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -28,7 +28,7 @@ public class UserAccountFinder implements BaseClassFinder {
 
     @Override
     public boolean canFind(Class<?> classToFind, String database) {
-        return classToFind.equals(UserAccount.class);
+        return classToFind.equals(UserAccountDbo.class);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class UserAccountFinder implements BaseClassFinder {
 
     @Override
     public <T extends BaseClass> String forceChangeDatabaseForJavers(T objectToFind, String database) {
-        if (objectToFind instanceof UserAccount){
+        if (objectToFind instanceof UserAccountDbo){
             return maindb;
         }
         return null;

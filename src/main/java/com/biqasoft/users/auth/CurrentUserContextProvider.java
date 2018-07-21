@@ -5,7 +5,7 @@
 package com.biqasoft.users.auth;
 
 import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 
 import java.util.Date;
 
@@ -15,11 +15,11 @@ import java.util.Date;
  */
 public interface CurrentUserContextProvider {
 
-    UserAccount getUserAccount();
+    UserAccountDbo getUserAccount();
 
     Domain getDomain();
 
-    void setUserAccount(UserAccount userAccount);
+    void setUserAccount(UserAccountDbo userAccount);
 
     void setDomain(Domain domain);
 

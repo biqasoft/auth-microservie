@@ -5,7 +5,7 @@
 package com.biqasoft.users.useraccount.dto;
 
 
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import lombok.Data;
 
 /**
@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 public class CreatedUser {
 
-    private UserAccount userAccount;
+    private UserAccountDbo userAccount;
 
     // do not add @JsonIgnore
     private String password;

@@ -2,7 +2,7 @@ package com.biqasoft.users.useraccount;
 
 import com.biqasoft.users.auth.CurrentUserCtx;
 import com.biqasoft.users.domain.useraccount.PersonalSettings;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import com.biqasoft.users.useraccount.dto.CreatedUser;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,11 +14,11 @@ import reactor.core.publisher.Mono;
  */
 public interface UserAccountRepository {
 
-    Mono<UserAccount> findUserByOAuth2UserNameToken(String customUsername);
+    Mono<UserAccountDbo> findUserByOAuth2UserNameToken(String customUsername);
 
-    Mono<CreatedUser> registerNewUser(UserAccount userAccount) ;
+    Mono<CreatedUser> registerNewUser(UserAccountDbo userAccount) ;
 
-    Mono<CreatedUser> createUserAccountInDomain(UserAccount userAccount, String password, CurrentUserCtx ctx);
+    Mono<CreatedUser> createUserAccountInDomain(UserAccountDbo userAccount, String password, CurrentUserCtx ctx);
 
         /**
          * Find user account by id only in current domain
@@ -26,7 +26,7 @@ public interface UserAccountRepository {
          * @param user
          * @return
          */
-    Mono<UserAccount> findByUserId(String user, CurrentUserCtx ctx);
+    Mono<UserAccountDbo> findByUserId(String user, CurrentUserCtx ctx);
 
     /**
      * Find user account by id
@@ -34,7 +34,7 @@ public interface UserAccountRepository {
      * @param user
      * @return
      */
-    Mono<UserAccount> unsafeFindUserById(String user);
+    Mono<UserAccountDbo> unsafeFindUserById(String user);
 
     /**
      * Find user by username
@@ -44,7 +44,7 @@ public interface UserAccountRepository {
      * @param userName username or token
      * @return user account with this credentials
      */
-    Mono<UserAccount> findByUsernameOrOAuthToken(String userName);
+    Mono<UserAccountDbo> findByUsernameOrOAuthToken(String userName);
 
     /**
      * Private API
@@ -54,7 +54,7 @@ public interface UserAccountRepository {
      * @param newObject
      * @return
      */
-    Mono<UserAccount> unsafeUpdateUserAccount(UserAccount newObject);
+    Mono<UserAccountDbo> unsafeUpdateUserAccount(UserAccountDbo newObject);
 
     /**
      * Update user accounts which are in the same domain
@@ -64,7 +64,7 @@ public interface UserAccountRepository {
      * @return
      * @throws Exception
      */
-    Mono<UserAccount> updateUserAccountForCurrentDomain(UserAccount newObject, CurrentUserCtx ctx) throws Exception;
+    Mono<UserAccountDbo> updateUserAccountForCurrentDomain(UserAccountDbo newObject, CurrentUserCtx ctx) throws Exception;
 
     /**
      * Set current user as online
@@ -84,9 +84,9 @@ public interface UserAccountRepository {
      *
      * @return
      */
-    Flux<UserAccount> findAllUsersInDomain(CurrentUserCtx ctx);
+    Flux<UserAccountDbo> findAllUsersInDomain(CurrentUserCtx ctx);
 
-    Flux<UserAccount> unsafeFindAllUsers();
+    Flux<UserAccountDbo> unsafeFindAllUsers();
 
     /**
      * FOR INTERNAL USAGE ONLY
@@ -96,5 +96,5 @@ public interface UserAccountRepository {
      */
     Mono<Void> deleteUserById(String id);
 
-    Flux<UserAccount> fullTextSearch(DomainUserController.UserSearchRequest searchRequest, CurrentUserCtx ctx);
+    Flux<UserAccountDbo> fullTextSearch(DomainUserController.UserSearchRequest searchRequest, CurrentUserCtx ctx);
 }

@@ -5,7 +5,7 @@
 package com.biqasoft.users.authenticate.dto;
 
 import com.biqasoft.users.domain.Domain;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.List;
 public class AuthenticateResultDto {
 
     // TODO: separate to DTO
-    private UserAccount userAccount;
+    private UserAccountDbo userAccount;
 
     // is user authenticated
     private Boolean authenticated = false;

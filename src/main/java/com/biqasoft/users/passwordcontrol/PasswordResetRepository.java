@@ -12,7 +12,7 @@ import com.biqasoft.users.notifications.EmailPrepareAndSendService;
 import com.biqasoft.users.passwordcontrol.dto.PasswordEncodeRequest;
 import com.biqasoft.users.passwordcontrol.dto.PasswordResetDTO;
 import com.biqasoft.users.passwordcontrol.dto.ResetPasswordTokenDTO;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import com.biqasoft.users.useraccount.UserAccountRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +80,7 @@ public class PasswordResetRepository {
     }
 
     public void resetUserPasswordBySecretToken(ResetPasswordTokenDTO resetPasswordTokenDao) {
-        UserAccount userAccount = userAccountRepository.findByUsernameOrOAuthToken(resetPasswordTokenDao.getEmail()).block();
+        UserAccountDbo userAccount = userAccountRepository.findByUsernameOrOAuthToken(resetPasswordTokenDao.getEmail()).block();
         userAccount.setPassword(encoder.encode(resetPasswordTokenDao.getPassword()));
         ops.save(userAccount);
         ops.remove(resetPasswordTokenDao);
@@ -98,14 +98,14 @@ public class PasswordResetRepository {
         emailPrepareAndSendService.sendResetPassword(resetPasswordTokenDao);
     }
 
-    public PasswordResetDTO unsafeResetPassword(UserAccount userPosted, CurrentUserCtx ctx) {
+    public PasswordResetDTO unsafeResetPassword(UserAccountDbo userPosted, CurrentUserCtx ctx) {
         String password = randomString.nextString();
 
         PasswordEncodeRequest passwordEncodeRequest = new PasswordEncodeRequest();
         passwordEncodeRequest.setPassword(password);
         userPosted.setPassword(encoder.encode(passwordEncodeRequest.getPassword()));
 
-        UserAccount oldUserAccount = userAccountRepository.findByUserId(userPosted.getId(), ctx).block();
+        UserAccountDbo oldUserAccount = userAccountRepository.findByUserId(userPosted.getId(), ctx).block();
 
         if (!ctx.getDomain().getDomain().equals(oldUserAccount.getDomain())) {
             ThrowExceptionHelper.throwExceptionInvalidRequest("ACCESS DENY");

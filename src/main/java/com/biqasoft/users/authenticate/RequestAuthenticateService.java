@@ -53,10 +53,13 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
         }
         this.authChainFilters = authChainFilters;
 
+        int order = 1;
+
         logger.info("The following filter chain (and order) will be used: ");
 
         for (AuthChainFilter authChainFilter : this.authChainFilters) {
-            logger.info(authChainFilter.getName() + " - " + authChainFilter.getDescription());
+            logger.info("{}. {} - {}", order, authChainFilter.getName(), authChainFilter.getDescription());
+            order++;
         }
     }
 
@@ -115,7 +118,9 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
                         } else {
                             // failed
                             authFailedLimit.processFailedAuth(authenticateRequest);
-                            result.success();
+                            var failedObj = new AuthenticateResultDto();
+                            failedObj.setAuthenticated(false);
+                            result.success(failedObj);
                         }
                     }
                 });
@@ -140,6 +145,10 @@ public class RequestAuthenticateService implements ServerSecurityContextReposito
             authenticateRequest.setToken(authorization.get(0));
             return this.authenticateRequest(authenticateRequest).flatMap(authenticateResult -> {
                 AuthServerInternalAuth authentication = new AuthServerInternalAuth(authenticateResult);
+                if (!authenticateResult.getAuthenticated()) {
+                    return Mono.error(new BiqaAuthenticationLocalizedException("auth.failed.generic"));
+                }
+
                 return Mono.just(new SecurityContextImpl(authentication));
             });
         }

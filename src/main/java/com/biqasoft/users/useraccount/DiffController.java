@@ -7,7 +7,7 @@ package com.biqasoft.users.useraccount;
 import com.biqasoft.audit.object.ObjectsAuditHistoryService;
 import com.biqasoft.audit.object.diffs.ChangeObjectDTO;
 import com.biqasoft.entity.constants.SystemRoles;
-import com.biqasoft.users.useraccount.dbo.UserAccount;
+import com.biqasoft.users.useraccount.dbo.UserAccountDbo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ public class DiffController {
     @ApiOperation(value = "get history info of customer changes just as string formatted")
     @RequestMapping(value = "class/{className}/id/{id}", method = RequestMethod.GET)
     public List<ChangeObjectDTO> getChanges(@PathVariable("id") String id, @PathVariable("className") String className) {
-        return ObjectsAuditHistoryService.transformJaversChangesToDTO(objectsAuditHistoryService.getChangesByObject(UserAccount.class, id, "main"));
+        return ObjectsAuditHistoryService.transformJaversChangesToDTO(objectsAuditHistoryService.getChangesByObject(UserAccountDbo.class, id, "main"));
     }
 
 }
